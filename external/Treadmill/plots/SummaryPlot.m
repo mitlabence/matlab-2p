@@ -1,0 +1,682 @@
+function SummaryPlot(pathname,filename,caim,belt,scn)
+%% summary
+if ispc
+    addpath('C:\Users\Admin\Documents\MATLAB\export fig')
+else
+    addpath(genpath('/media/2Photon/Matlab code/Martin Source Code/ca_source_extraction'))
+    addpath(genpath('/media/2Photon/Matlab code/Martin Source Code/Treadmill/plots'))
+    addpath('/home/martin/Documents/MATLAB/export fig')
+end
+
+k = 10; % variable for pdf pages
+if ~isfield(caim,'FOV') && exist([pathname filename ' bob.tif'],'file')
+    options.crop = [0 0 0 0]; % [70 0 10 5] for M227  % [70 0 0 5] for M234
+    options.sframe = 1;
+    options.num2read = 200;
+    [Data,Datared] = readdata([pathname filename ' bob.tif'],options);
+    Data = Data - min(Data(:));
+    Data = Data/max(Data(:));
+    Datared = Datared - min(Datared(:));
+    Datared = Datared/max(Datared(:));
+    crop = [20 20 20 20];
+    if isfield(caim,'bulk')
+        ref = 15*mean(Datared(crop(1)+1:end-crop(2),crop(3)+1:end-crop(4),:),3);
+        ref(:,:,2) = 1.5*mean(Data(crop(1)+1:end-crop(2),crop(3)+1:end-crop(4),:),3);
+        ref(:,:,3) = 0;
+    else
+        ref = 1*mean(Datared(crop(1)+1:end-crop(2),crop(3)+1:end-crop(4),:),3);
+        ref(:,:,2) = 1.5*mean(Data(crop(1)+1:end-crop(2),crop(3)+1:end-crop(4),:),3);
+        ref(:,:,3) = 0;
+    end
+    
+    ref(:,:,1) = imadjust(ref(:,:,1));
+    ref(:,:,2) = imadjust(ref(:,:,2));
+elseif isfield(caim,'FOV')
+    ref = (mat2gray(caim.FOV(:,:,2))); % imadjust
+    ref(:,:,2) = (mat2gray(caim.FOV(:,:,1))); % imadjust
+    ref(:,:,3) = 0;
+else
+    ref = [];
+end
+%%
+cclust = scn.cclust;
+
+load('cclustID.mat','cclustID');
+
+%% Picture
+figure('color',[1 1 1],...
+    'position',[500 50 1.5*[420 594]],...
+    'renderer','painters',...
+    'visible','off')
+
+subplot(2,1,1)
+imshow(ref)
+subplot(2,1,2)
+
+A = reshape(caim.A(:,1),caim.options.d1,caim.options.d2);
+for i = 2:size(caim.A,2)
+    A = A+reshape(caim.A(:,i),caim.options.d1,caim.options.d2);
+end
+A = full(A)./max(full(A));
+A = cat(3,zeros(size(A)),A,zeros(size(A)));
+imshow(A)
+
+k = k+1;
+printpdf([num2str(k)])
+
+%% traces
+timeint = [0 20]; %[5 15] for M227 %[5 15] for M234
+timeint = timeint*60*1000;
+
+figure('color',[1 1 1],...
+    'position',[500 50 1.5*[420 594]],...
+    'renderer','painters',...
+    'visible','off')
+
+PlotComponentsBehaveBulk(caim,1:25,[],[],scn,ref,timeint,0)
+
+k = k+1;
+printpdf([num2str(k)])
+
+%% Basic properties
+
+figure('color',[1 1 1],...
+    'position',[500 50 1.5*[420 594]],...
+    'renderer','painters',...
+    'visible','off')
+
+hold on
+xplot = 4;
+yplot = 4;
+% number of active cells
+subplot(yplot,xplot,1)
+bar(size(caim.C,1),'FaceColor',[.5 .5 .5])
+title('# Cells');
+% # Rounds
+subplot(yplot,xplot,2)
+bar(max(belt.round),'FaceColor',[0 176/255 240/255])
+title('# Rounds');
+% Firing frequency
+subplot(yplot,xplot,3)
+bar(caim.fireprop.meanfire(2,2:3),'FaceColor',[.3 .3 .3])
+ax = gca;
+ax.XTickLabel = {'run' 'rest'};
+title('Mean frequency');
+% Firing amplitude
+subplot(yplot,xplot,4)
+bar(caim.fireprop.meanamplitude(1,2:3),'FaceColor',[.3 .3 .3])
+ax = gca;
+ax.XTickLabel = {'run' 'rest'};
+title('Mean amplitude');
+% number of network events
+subplot(yplot,xplot,5)
+bar(caim.network.netfreq(1,2:3),'g')
+ax = gca;
+ax.XTickLabel = {'run' 'rest'};
+title('# Networks');
+% frequency of network events
+subplot(yplot,xplot,6)
+bar(caim.network.netfreq(2,2:3),'g')
+ax = gca;
+ax.XTickLabel = {'run' 'rest'};
+title('Network Frequency');
+if isfield(caim,'bulk')
+    % Baseline of bulk
+    subplot(yplot,xplot,7)
+    bar(caim.bulk.baseline(1,2:3),'r')
+    ax = gca;
+    ax.XTickLabel = {'run' 'rest'};
+    title('MEC Baseline');
+    % Std of bulk
+    subplot(yplot,xplot,8)
+    bar(caim.bulk.baseline(2,2:3),'r')
+    ax = gca;
+    ax.XTickLabel = {'run' 'rest'};
+    title('MEC std');
+end
+hold off
+
+% Histogramm of fireprob
+
+subplot(yplot,xplot,9:10)
+maxcount = 20;
+xtil = string(0:5:maxcount);
+xtil(end) = string([' >' num2str(maxcount)]);
+fireprob1 = caim.fireprop.fire(:,1);
+fireprob1(fireprob1>maxcount) = maxcount;
+histogram(fireprob1,'BinWidth',.5,...
+    'BinLimits',[0, maxcount],...
+    'FaceColor','[.3 .3 .3]',...
+    'FaceAlpha',1)
+title('#Events per cell')
+
+% Histogram of participation
+
+subplot(yplot,xplot,11:12)
+histogram(caim.network.netprob(caim.network.netprob~=0),...
+    'BinWidth',1,...
+    'BinLimits',[1, 30],...
+    'FaceColor','g',...
+    'FaceAlpha',1)
+title('#Networks per cell')
+
+% Histogram of cells per network event
+
+subplot(yplot,xplot,13:14)
+histogram(caim.network.netnum,...
+    'BinWidth',1,...
+    'BinLimits',[1, 30],...
+    'FaceColor','g',...
+    'FaceAlpha',1)
+title('#Cells per Network')
+
+% Network raster plot
+
+subplot(yplot,xplot,15:16)
+hold on
+% imagesc(netraster)
+if isfield(caim.network,'netraster')
+    netraster = caim.network.netraster;
+    netcolor = [1 0 0;1 1 0; 1 0 1; 0 1 0; 0 0 1; 0 1 1;.5 0 0;.5 .5 0;.5 0 .5; 0 .5 0; 0 0 .5; 0 .5 .5;];
+    j = 1;
+    
+    % raster scatter color coded events
+    for i = 1:2:size(netraster,1)
+        plot([0 size(netraster,2)+1],[i i] ,':','color',[.7 .7 .7])
+    end
+    for i = 1:size(netraster,2)
+        jj = (find(sum(netraster(:,i,:),3) >= 1));
+        scatter(ones(1,length(jj))*i,jj,'filled','MarkerFaceColor',netcolor(j,:));
+        j = j +1;
+        if j > size(netcolor,1)
+            j = 1;
+        end
+    end
+    
+    ax = gca;
+    % ax.FontSize = 35;
+    ax.XLim = [11 25];%[0 size(netraster,2)];
+    ax.YLim = [0 size(netraster,1)];
+    % ax.LineWidth = 2;
+    % ax.XTickLabel = {};
+    % ax.YTickLabel = {};
+    % ax.YTick = 0:10:size(netraster,1);
+    % ax.XTick = 0:10:size(netraster,2);
+    % ax.YColor = [0 0 0];
+    % ax.XColor = [0 0 0];
+    % ax.Color = [1 1 1];
+    
+    hold off
+    title('Network Raster')
+end
+
+k = k+1;
+printpdf([num2str(k)])
+
+
+%% Example traces Input Output Movement
+
+if isfield(caim,'bulk')
+    figure('color',[1 1 1],...
+        'position',[500 50 1.5*[420 594]],...
+        'renderer','painters',...
+        'visible','off')
+    
+    fs = length(scn.tsscn)/scn.tsscn(end)*1000;
+    
+    d = scn.tsscn/1000;
+    
+    a = sum(caim.C);
+    a = debleach(d,a);
+    a = a';
+    % a = sum(caim.S_bin);
+    a = a-min(a); a = a/max(a);
+    
+    c = smooth(caim.bulk.trace(:,2));
+    c = c-min(c); c = c/max(c);
+    
+    speed = diff(scn.distance);
+    speed(speed<-20) = 0;
+    speed(end+1)=speed(end);
+    speed = smooth(speed,30);
+    speed = speed-min(speed);
+    speed = speed/max(speed);
+    
+    yplot = 5;
+    split = round(length(d)/yplot);
+    for i = 1:yplot
+        subplot(yplot,1,i)
+        if i<yplot
+            win = (i-1)*split+1:i*split;
+        else
+            win = (i-1)*split+1:length(d);
+        end
+        
+        b = find(caim.network.netev);
+        b = round(b(b>=win(1) & b <=win(end)));
+        plot(d(win),speed(win)/2-1,...
+            'Color',[0 176/255,240/255],...
+            'LineWidth',1)
+        hold on
+        plot(d(win),c(win)+1,'r',...
+            'LineWidth',1)
+        plot(d(win),1*a(win),'g',...
+            'LineWidth',1)
+        scatter(d(b),ones(1,length(b))*max(a(win)),'filled')
+        axis tight
+        ax = gca;
+        ax.YLim = [-1 2];
+        %     axis off
+    end
+    k = k+1;
+    printpdf([num2str(k)])
+end
+
+
+
+%%
+if isfield(caim,'bulk')
+    figure('color',[1 1 1],...
+        'position',[500 50 1.5*[420 594]],...
+        'renderer','painters',...
+        'visible','off')
+    
+    subplot(4,3,4:5)
+    plot(caim.bulk.netxbulk(1,:),caim.bulk.netxbulk(2,:))
+    grid on
+    title('X-corr MECxNet')
+    
+    subplot(4,3,6)
+    bar(caim.bulk.netcorr(3)*1000)
+    title('Delay in ms')
+    
+    subplot(4,3,3)
+    bar(caim.bulk.netcorr([4 1]))
+    title('R-coeff')
+    
+    
+    stim = scn.network;
+    win = 01:121;
+    if ~isempty(stim.resp)
+        sumresp = reshape(sum(sum(stim.resp,1),2),[1 length(stim.times(1,:))])/size(stim.resp,2);
+        traceresp = zscore(reshape(sum(sum(stim.respCa,1),2),[1 length(stim.times(1,:))])/size(stim.resp,2)/size(stim.resp,1));
+        bulk = zscore(reshape(stim.bulkmean,[1 length(stim.bulktime(1,:))]));
+    end
+    
+    if ~isempty(stim.times)
+        subplot(4,3,1:2)
+        hold on
+        bar(stim.times(1,win)/1000,sumresp(:,win),'g',...    'EdgeColor','g',...
+            'linewidth',.2);
+        plot(stim.times(1,win)/1000,traceresp(:,win),'g','linewidth',2)
+        plot(stim.times(1,win)/1000,bulk(:,win),'r','linewidth',2)
+        hold off
+        title('Activity on network event')
+    end
+    
+    % MPP against activity
+    subplot(4,2,5)
+    scatter(cclust(:,cclustID.meanf),cclust(:,cclustID.mpp))
+    [h,p] = corr(cclust(~isnan(cclust(:,cclustID.mpp)),cclustID.meanf),cclust(~isnan(cclust(:,cclustID.mpp)),cclustID.mpp));
+    title(['MPP against activity, r = ' num2str(h) ', p = ' num2str(p)]);
+    
+    % Reciprocal activity against MPP
+    subplot(4,2,6)
+    hold on
+    aa = cclust(cclust(:,cclustID.mpp)>0,cclustID.mpp);
+    bb = (1./(cclust(cclust(:,cclustID.mpp)>0,cclustID.meanf)));
+    aa(aa==inf)=nan;
+    bb(bb==inf)=nan;
+    bin = 100;
+    binb = zeros(bin-1,1);
+    bina = zeros(bin-1,1);
+    bin = (min(aa):(max(aa)-min(aa))/bin:max(aa))';
+    for i = 1:length(bin)-1
+        bina(i) = mean([bin(i) bin(i+1)]);
+        binb(i) = nanmean(bb(aa>=bin(i) & aa<=bin(i+1)));
+    end
+    [h,p] = corr(bina(~isnan(binb)),binb(~isnan(binb)));
+    % [h,p] = corr(~isnan(aa),~isnan(bb));
+    scatter(aa,bb)
+    scatter(bina,binb,'linewidth',2)
+    title(['1/act against MPP, r = ' num2str(h) ', p = ' num2str(p)]);
+    LnEqn = 'a*x+b';
+    startPoints = [1 0];
+    upperBounds = [10 2];
+    % lowerBounds =[.05 -1 500 0];
+    F1 = fit(bina(~isnan(binb)&bina<3&bina>0),binb(~isnan(binb)&bina<3&bina>0),LnEqn,'Start', startPoints,'upper',upperBounds);%,'lower',lowerBounds);
+    h = get(gca,'ylim');
+    plot(aa,F1(aa))
+    set(gca,'ylim',h)
+    hold off
+    
+    % Network against MPP
+    subplot(4,2,7)
+    scatter(cclust(:,cclustID.mpp),cclust(:,cclustID.netprob))
+    [h,p] = corr(cclust(~isnan(cclust(:,cclustID.mpp)),cclustID.mpp),cclust(~isnan(cclust(:,cclustID.mpp)),cclustID.netprob));
+    title(['Network against MPP, r = ' num2str(h) ', p = ' num2str(p)]);
+    k = k+1;
+    printpdf([num2str(k)])
+end
+
+
+
+%% Place field analysis plots
+if isfield(scn,'plcfield') && ~isempty(scn.plcfield)
+    figure('color',[1 1 1],...
+        'position',[500 50 1.5*[420 594]],...
+        'renderer','painters',...
+        'visible','off')
+    
+    % Dombeck place field analysis
+    plcfield = scn.plcfield;
+    subplot(4,5,1);imagesc(plcfield(:,:,1));colormap(jet);
+    ax = gca;
+    ax.YTick = 1:length(scn.cellID(:,1));
+    ax.YTickLabel = {scn.cellID};
+    ax.FontSize = 4;
+    title('Mean Act')
+    subplot(4,5,2);imagesc(plcfield(:,:,2));colormap(jet);
+    ax = gca;ax.YTickLabel = {};ax.FontSize = 4;
+    title('20 % of rounds')
+    subplot(4,5,3);imagesc(plcfield(:,:,3));colormap(jet);
+    ax = gca;ax.YTickLabel = {};ax.FontSize = 4;
+    title('Contrast')
+    subplot(4,5,4);imagesc(plcfield(:,:,4));colormap(jet);
+    ax = gca;ax.YTickLabel = {};ax.FontSize = 4;
+    title('Putativ fields')
+    subplot(4,5,5);imagesc(plcfield(:,:,5));colormap(jet);
+    ax = gca;ax.YTickLabel = {};ax.FontSize = 4;
+    title('Length correction')
+    
+    % place field order plot
+    sigID = scn.cellID;
+    sigID = sigID(sigID(:,2)>0 & sigID(:,3)<=.05,:);
+    [~,b] = sort(sigID(:,2));
+    sigID = sigID(b,1);
+    PForder = zeros(length(sigID),size(scn.plcfield,2));
+    for i = 1:length(sigID)
+        %         a = find(scn.cellID(:,1)==sigID(i));
+        PForder(i,:) = scn.plcfield(scn.cellID(:,1)==sigID(i),:,1);
+        PForder(i,:) = PForder(i,:)-min(PForder(i,:));%/max(PVorder(i,:)-min(PVorder(i,:)));
+    end
+    subplot(4,2,3)
+    imagesc(PForder)
+    colormap(jet)
+    ax = gca;
+    ax.YTick = 1:length(sigID);
+    ax.YTickLabel = {sigID};
+    ax.FontSize = 4;
+    title('Sorted PF')
+    
+    % Sorted place vectors
+    %     spcpol = scn.spcpol;
+    %     [a,b] = sort((angle(cell2mat(spcpol(:,1)))));
+    [a,b] = sort(scn.cellID(:,7));
+    sigID = scn.cellID(b,:);
+    a = a(sigID(:,6)<=.05);
+    sigID = sigID(sigID(:,6)<=.05,1);
+    PVorder = zeros(length(sigID),size(scn.plcfield,2));
+    for i = 1:length(sigID)
+        %         a = find(scn.cellID(:,1)==sigID(i));
+        PVorder(i,:) = scn.plcfield(scn.cellID(:,1)==sigID(i),:,1);
+        PVorder(i,:) = PVorder(i,:)-min(PVorder(i,:));%/max(PVorder(i,:)-min(PVorder(i,:)));
+    end
+    c = find(abs(a)==min(abs(a)));
+    
+    subplot(4,2,4)
+    imagesc([PVorder(c:end,:) ; PVorder(1:c-1,:)])
+    colormap(jet)
+    ax = gca;
+    ax.YTick = 1:length(sigID);
+    ax.YTickLabel = {sigID};
+    ax.FontSize = 4;
+    title('Sorted place vectors')
+    
+    %
+    if isfield(scn,'runonset')
+        stim = scn.runonset;
+        subplot(4,2,5)
+        stimplot(stim)
+        title('Running onset')
+    end
+    
+    if isfield(scn,'spcresp')
+        stim = scn.spcresp;
+        subplot(4,2,6)
+        stimplot(stim)
+        title('Place field activity')
+    end
+    
+    if ~isempty(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.meanf))
+        subplot(4,2,7)
+        scatter(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.meanf),cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.plcvct))
+        [h,p] = corr(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.meanf),cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.plcvct));
+        title(['Place-vector against activity, r = ' num2str(h) ', p = ' num2str(p)]);
+    end
+    if isfield(caim,'bulk') && ~isempty(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.meanf))
+        subplot(4,2,8)
+        scatter(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.mpp),cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05,cclustID.plcvct))
+        [h,p] = corr(cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05 & ~isnan(cclust(:,cclustID.mpp)),cclustID.mpp),cclust(cclust(:,cclustID.plcvct)>0 & cclust(:,cclustID.plcvctp)<=.05 & ~isnan(cclust(:,cclustID.mpp)),cclustID.plcvct));
+        title(['Place-vector against Mpp, r = ' num2str(h) ', p = ' num2str(p)]);
+    end
+    k = k+1;
+    printpdf([num2str(k)])
+end
+
+
+%% Place field analysis plots for individual plots
+
+if isfield(scn,'plcfield') && ~isempty(scn.plcfield)
+    figure('color',[1 1 1],...
+        'position',[500 50 1.5*[420 594]],...
+        'renderer','painters',...
+        'visible','off')
+    j = 1;
+    spcpol = scn.spcpol;
+    for i = 1:size(scn.spcpol,1)
+        if j > 6*3
+            k = k+1;
+            printpdf([num2str(k)])
+            j = 1;
+            figure('color',[1 1 1],...
+                'position',[500 50 1.5*[420 594]],...
+                'renderer','painters',...
+                'visible','off')
+        end
+        
+        subplot(6,3,j)
+        plot(scn.plcfield(i,:,1),'color',[.5 .5 .5])
+        hold on
+        plot(scn.spcpol{i,4},'b')
+        plot(scn.plcfield(i,:,5),'color',[.8 .1 .1],'linewidth',2)
+        title(['Cell ' num2str(scn.cellID(i,1)) ', p = ' num2str(round(100*scn.cellID(i,3))) ' %'],...
+            'fontsize',7)
+        box off
+        
+        subplot(6,3,j+1)
+        d = (max(scn.rounds)+1)*spcpol{i,1};
+        c = spcpol{i,3};
+        title(['Cell ' num2str(i)],...
+            'fontsize',7)
+        polarplot(scn.theta,scn.rho);%,'color',[0 .8 .8])
+        hold on
+        polarplot(c(:,1),c(:,2),'.','color',[.5 .5 .5],'MarkerSize',8)
+%         polarplot(d,'*');
+        VectL = abs(d); 
+        if VectL>max(scn.rounds);VectL=max(scn.rounds);end
+        polarplot([0 real(-1j*log(d))],[0 VectL],...
+            'linewidth',2,...
+            'color',[0 0 0]);
+        axis off
+        hold off
+        
+        
+        subplot(6,3,j+2)
+        title(['Cell ' num2str(i)])
+        a = length(find(scn.shufpol(i,2,:)>scn.spcpol{i,2}))/(size(scn.shufpol(i,2,:),3));
+        histogram(scn.shufpol(i,2,:),...
+            'Normalization','Probability',...
+            'LineStyle','none')
+        hold on
+        plot([scn.spcpol{i,2} scn.spcpol{i,2}],[0 .2])
+        xlim([0 1])
+        hold off
+        title(['p = ' num2str(round(100*scn.cellID(i,6))) ' %'],...
+            'fontsize',7)
+
+        xlim([0 1]);
+        ylim([0 .2]);
+        box off
+        
+        
+        j = j+3;
+    end
+    k = k+1;
+    printpdf([num2str(k)])
+end
+
+%% Speed cells
+speed = diff(scn.distance);
+speed(speed<-20) = 0;
+speed(end+1)=speed(end);
+speed = smooth(speed,30);
+speed = speed-min(speed);
+speed = speed/max(speed);
+cclusttemp = scn.cclust;
+isspeed = cclusttemp(:,cclustID.speedcorr)>.9 & cclusttemp(:,cclustID.speedcorrp2)<=.05;
+if isfield(scn,'plcfield') && ~isempty(scn.plcfield) && sum(isspeed)>0
+    figure('color',[1 1 1],...
+        'position',[500 50 1.5*[420 594]],...
+        'renderer','painters',...
+        'visible','off')
+    j = 1;
+    num = find(isspeed);
+    for i = 1:sum(isspeed)
+        if j > 6
+            k = k+1;
+            printpdf([num2str(k)])
+            j = 1;
+            figure('color',[1 1 1],...
+                'position',[500 50 1.5*[420 594]],...
+                'renderer','painters',...
+                'visible','off')
+        end
+        y = (caim.C(num(i),:)./caim.Df(num(i)));
+        y = y-min(y);
+        subplot(6,1,j)
+        plot(scn.tsscn/60000,mat2gray(speed)*max(y),'color',[0 1 1])
+        hold on
+        plot(scn.tsscn/60000,y,'color',[0 0 0])
+        title(['Cell ' num2str(num(i)) ', p = ' num2str(round(100*cclusttemp(num(i),cclustID.speedcorrp2))) ' %'],...
+            'fontsize',7)
+        
+        j = j+1;
+    end
+    k = k+1;
+    printpdf([num2str(k)])
+end
+
+%% Combine .pdf
+if isfile([pathname filename '.pdf'])
+    delete([pathname filename '.pdf'])
+end
+close all
+files = dir('*.pdf');
+append_pdfs([pathname filename '.pdf'],files.name)
+delete(files.name)
+
+%%
+    function [a,c,C] = netcorrplot(netraster,a,c)
+        
+        if isempty(c) && ~isempty(netraster) && size(netraster,2)>2
+            [netcorr,~] = corr(netraster');
+            a = ~isnan(diag(netcorr));
+            netcorr = netcorr(a,a);
+            Y = netcorr;
+            Z = linkage(Y,'weighted','seuclidean');
+            
+            %         D = pdist(Y,'seuclidean');
+            %         c = optimalleaforder(Z,D);
+            
+            [aa,bb] = histcounts((caim.network.netnum),'normalization','probability');
+            numcell = sum(a);
+            sumaa = 0;
+            for ii = 1:length(aa)
+                sumaa = sumaa + aa(ii);
+                if sumaa >0.5
+                    meannet = bb(ii)+.5;
+                    break
+                end
+            end
+            numclust = round(numcell/meannet);
+            C = cluster(Z,'maxclust',numclust);
+            [~,c] = sort(C,'descend');
+            
+        else
+            [netcorr,~] = corr(netraster');
+            netcorr = netcorr(a,a);
+            Y = netcorr;
+        end
+        
+        A = Y(c,c);
+        A(A<0) = 0;
+        imagesc(A)
+        colormap(jet)
+        %     C = zeros(1,length(a));
+        %     C(a) = c;
+        
+        if isfield(scn,'plcfield') && ~isempty(scn.plcfield)
+            isplace = false(1,length(a));
+            isplace(scn.cellID(scn.cellID(:,6)<.05,1)) = 1;
+            isplace = isplace(a);
+            isplace = isplace(c);
+            isplace = find(isplace);
+            hold on
+            for i = isplace
+                scatter(i,i,20,'g','filled')
+            end
+            if isfield(scn,'airpuff')
+                stim = scn.airpuff;
+                isstim = false(1,length(a));
+                isstim(stim.cellID(:,1)) = 1;
+                isstim = isstim(a);
+                isstim = isstim(c);
+                isstim = find(isstim);
+                for i = isstim
+                    scatter(i,i,20,'r','filled')
+                end
+            end
+            hold off
+        end
+    end
+%%
+    function stimplot(stim)
+        %%
+        hold on
+        plot(stim.times(1,:),20*(smooth(mean(stim.speed,1))),'c','linewidth',1)
+        if isfield(stim,'pupil')
+            plot(stim.times(1,:)/1000,mean(stim.pupil,1),'y','linewidth',1)
+        end
+        if isfield(stim,'sumnet')
+            plot(stim.times(1,:)/1000,mean(stim.sumnet,1),'g','linewidth',1)
+            plot(stim.times(1,:)/1000,reshape(sum(sum(stim.resp,1),2),[1 size(stim.resp,3)])./size(stim.times,1)-1,'g','linewidth',1)
+            plot(stim.times(1,:)/1000,reshape(sum(sum(stim.nr.resp,1),2),[1 size(stim.nr.resp,3)])./size(stim.times,1)-1,'color',[0 .5 0],'linewidth',1)
+        end
+        if isfield(stim,'bulktime')
+            plot(stim.bulktime(1,:)/1000,stim.bulkmean,'r','linewidth',1)
+        end
+        
+        % plot(stim.times(1,:)(1:end-1),sum(cell2mat(stim.running),2)/10,'c','linewidth',2)
+        plot([0 0],[-1 1],'b')
+        hold off
+        grid on
+        axis tight
+        ax = gca;
+        ax.XLim = [-1 6];
+    end
+
+end
+
+
+
