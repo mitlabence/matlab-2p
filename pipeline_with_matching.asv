@@ -64,16 +64,13 @@ options.sframe   = sframe;
 options.num2read = num2read;
 options.crop = crop_caiman;
 
-%% Decide which steps to run, instead of commenting them out.
+
 should_read_nd2 = false;
 should_correctNoiseMovement = false;
 should_writeToTiff = false;
 should_singleCell = false;
 should_readDataFiles = true;
 should_preprocess = true;
-should_BeltToSCN = true;
-should_reduce_scn = true;
-should_save_scn = true;
 
 %% Read nd2 file
 if should_read_nd2
@@ -114,17 +111,10 @@ if should_preprocess
     [belt, caim] = preprocessBeltCaimInplace(belt, caim, nikon_time_stamps, labview_time_stamps); %FIXME: belt has a modified tsscn
             %(577 points, matched to nikon frames), but everything else is kept
             %untouched(?)...
-    %[belt,caim] = readcaim(DATA_PATH, OUTPUT_FILE_NAME); %old, chaotic
-    %function
+    %[belt,caim] = readcaim(DATA_PATH, OUTPUT_FILE_NAME);
 end
 
-if should_BeltToSCN
-    [belt,scn] = BeltToSCN(caim,belt); %scn is the belt in scn time frame
-end
-if should_reduce_scn
-    scn_reduced = rmfield(scn, 'pupilsize'); %all other fields should have matching dimensions, hence writable to a single csv
-end
+[belt,scn] = BeltToSCN(caim,belt); %scn is the belt in scn time frame
 
-if should_save_scn
-    writetable(struct2table(scn_reduced), 'D:\PhD\Data\T386_MatlabTest\scn_reduced.csv');
-end
+scn_reduced = rmfield(scn, 'pupilsize'); %all other fields should have matching dimensions, hence writable to a single csv
+writetable(struct2table(scn_reduced), 'D:\PhD\Data\T386_MatlabTest\scn_reduced.csv');

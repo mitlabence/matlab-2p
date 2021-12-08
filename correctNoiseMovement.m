@@ -37,7 +37,7 @@ options.crop = crop;
 options_nonrigid = NoRMCorreSetParms('d1',size(nd2_data,1),'d2',size(nd2_data,2),...
         'grid_size',[32,32],'mot_uf',4,'bin_width',200,...
         'max_shift',15,'max_dev',3,'us_fac',50,'init_batch',200);
-[nd2_data,~,~,~] = normcorre_batch(nd2_data,options_nonrigid); %[nd2_data,shifts,template,options_nonrigid]
+[nd2_data,~,~,~] = normcorre_batch(nd2_data,options_nonrigid); %[nd2_data,shifts,template,options_nonrigid, col_shift]
 % if a second channel should be corrected too: Data = apply_shifts(Data,shifts,options_nonrigid);
 
 %% nd2_data is returned after processing
