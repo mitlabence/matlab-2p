@@ -14,6 +14,11 @@ function [Belt,caim] = readcaim(pathname,filename)
 % Belt - struct variable containing all belt read out data and the time
 % stamps
 % caim -  Calcium imaging data
+
+%NOTE: this function has been split in two for more transparency:
+%openImagingSession does only the opening parts, while
+%preprocessBeltCaimInplace modifies the data that was opened.
+
 %% Load recorded belt data by LV
 % Get pathanme if not given or if data is not found
 

@@ -1,5 +1,6 @@
 function caim = convertComp(filename)
 
+disp('Function convertComp was used (external code from Martin Pofahl). It is outdated, and calling is an issue. Consider debugging this!');
 [filename1, pathname] = uigetfile('*.mat','Select Component file','Z:\imaging Negar & Martin\M103\');
 if ~isempty(filename1)
     load([pathname filename1]);

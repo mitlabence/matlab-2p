@@ -1,9 +1,10 @@
 function [S_norm,S_bin] = canorm(caim)
+disp('Function canorm has been called (external). This function is deprecated and should be updated (documentation of effects, refactoring) or removed!');
 %%
 S_norm = zeros(size(caim.S));
 S_bin = zeros(size(caim.S));
-for i = 1:size(caim.S,1)
 %%
+for i = 1:size(caim.S,1)
     b = zeros(1,length(caim.S(i,:)));
     b(caim.C(i,:)>caim.thresh(i,:)) = 1;
     b(1:end-2) = b(3:end);

@@ -45,6 +45,7 @@ nb = size(f,1);     % number of background components
 %nA = full(sum(A.^2))';  % energy of each row
 %Y_r = spdiags(nA,0,nr,nr)\(A'*Y- (A'*A)*C - (A'*full(b))*f) + C; 
 
+%% This is just CaImAn mm_fun minus dimension detection and some file check
 step = 5e3;
 if size(A,1) == size(Y,1)
     if memmaped

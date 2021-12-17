@@ -1,6 +1,16 @@
 function nd2_data = correctNoiseMovement(uint16_data, sframe, numchan, crop, num2read)
-%CORRECTNOISEMOVEMENT Summary of this function goes here
-%   Detailed explanation goes here
+%CORRECTNOISEMOVEMENT This function combines the steps of ripple noise
+%removal and motion correction.
+%   Input:
+%       uint16_data: 3d array of uint16 elements (stack of imaging frames,
+%           e.g. from nd2SingleChToUint16.m
+%       sframe: the skip_frame parameter ofa CNMF object. TODO: it seems to
+%           not be used!
+%       numchan: number of channels
+% 
+%FIXME: options is not used?!
+%TODO: as part of the function unification process, change input to a CNMF
+%object!
 
 %% Ripple noise removal
 amplitudeThreshold = [10.8 12.8];
@@ -15,6 +25,7 @@ tau = 8;                                        % std of gaussian kernel (radius
 p = 2;                                          % order of autoregressive system (p = 0 no dynamics, p=1 just decay, p = 2, both rise and decay)
 merge_thr = 0.8;                                % merging threshold
 refine = false;                                 % Manually refine components
+
 
 options = CNMFSetParms(...
     'split_data',0,...

@@ -108,7 +108,7 @@ end
 %all functions that work with a CNMF object returna CNMF object... csem 
 %starts to deviate from this good practice!
 if should_readDataFiles
-    [belt, caim, nikon_time_stamps, labview_time_stamps] = readBeltCaimNikonLVStamps(DATA_PATH,OUTPUT_FILE_NAME);
+    [belt, caim, nikon_time_stamps, labview_time_stamps] = openImagingSession(DATA_PATH,OUTPUT_FILE_NAME);
 end
 if should_preprocess
     [belt, caim] = preprocessBeltCaimInplace(belt, caim, nikon_time_stamps, labview_time_stamps); %FIXME: belt has a modified tsscn

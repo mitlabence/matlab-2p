@@ -1,6 +1,8 @@
-function caim = divcells(caim,cID)        
+function caim = divcells(caim,cID)  
+disp('function divcells (external) called. This code is deprecated and should be updated (documentation of effects, CaImAn conformity) or removed!');
 %%   
 if isfield(caim,'raw')
+    disp('divcells: caim object has field "raw", i.e. is not a CMNF object!');
     if length(caim.raw.cID)>length(cID)
         caim.raw.cID(caim.raw.cID==1) = cID;
         cID = caim.raw.cID;

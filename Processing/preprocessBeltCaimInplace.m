@@ -1,15 +1,19 @@
 function [belt, caim] = preprocessBeltCaimInplace(belt, caim, nikon_time_stamps, labview_time_stamps)
 %preprocessBeltCaimInplace perform corrections for acquisition 
 %   software-related artifacts, MODIFYING THE INPUT VARIABLES (in-place 
-%   algorithm). The second part of Martin Pofahl's readcaim.m function.
+%   algorithm). The second part of Martin Pofahl's readcaim.m function,
+%   with two changes:
+%   1. odorcorrect() as first step has been removed, as presumably not only
+%   the tested subset of our recorings, but all of our data is free of the 
+%   "odor software artifact".
+%   2. odorcut() as last step has been removed, for similar reasons.
 %   
 %   Input:
 %       belt: struct variable containing all belt read out data and the time
 %             stamps
 %       caim: output caim of csem. Unfortunately, at this point, the object
 %               type cannot be determined.
-%% Correct for read out artifact from odor stimulation (should be corrected and can hopefully be removed soon)
-belt = odorcorrect(belt);
+
 %% Compare timestamps to check for consistency
 
 % Check which scanner was running and read out timestamps of scanner recorded by TF
@@ -113,16 +117,19 @@ end
 if isfield(caim,'Y') && length(tsscn)<size(caim.Y,2)
     disp('Shortening following to match scanner time frame: Y, C, S, f, thresh, S_norm, S_bin');
     disp(['reason: tsscn field (' length(tsscn) ') is shorter than Y field (' size(caim.Y,2) ').']);
-    caim.Y = caim.Y(:,1:length(tsscn));
+    disp('Possibly dangerous: calling loadArray of CNMF object to change Y (data) parameter. It should, however, update Yr and the new dimensions.');
+    caim.loadArray(caim.Y(:,1:length(tsscn)));
+    %caim.Y = caim.Y(:,1:length(tsscn)); %change back to this in case
+    %loadArray does not work. But this is a very bad way to change data!
+    %Need to change d1, d2, Yr...
     caim.C = caim.C(:,1:length(tsscn));
     caim.S = caim.S(:,1:length(tsscn));
     caim.f = caim.f(:,1:length(tsscn));
     caim.thresh = caim.thresh(:,1:length(tsscn));
     caim.S_norm = caim.S_norm(:,1:length(tsscn));
     caim.S_bin = caim.S_bin(:,1:length(tsscn));
+else
+    disp('CMNF object data was not shortened.');
 end
 
-%% Cut out stimulation period for long odor experiments
-%WARNING: the input parameter belt is overwritten here!
-[belt,caim] = odorcut(Belt,caim);
 end

@@ -1,11 +1,14 @@
 function [cID,thresh] = sort_components(caim)
+disp('Function sort_components called (external). This function is deprectated and should be updated (documentation of effects, refactoring) or removed!');
+%TODO: what does this function do?
 %%
-if isfield(caim,'raw')
+if isfield(caim,'raw') %TODO: which function creates field "raw"?
+    disp('sort_components: caim object has field "raw", i.e. is not a CMNF object!');
     C  = caim.raw.C;
     Df = caim.raw.Df;
     S  = caim.raw.S;
     Y  = caim.raw.Y;
-else
+else %for CMNF objects, this is called
     C = caim.C;
     S = caim.S;
     Y = caim.Y;
@@ -16,6 +19,7 @@ end
 gaussEqn = 'a*exp(-((x-b)/(sqrt(2)*c))^2)';
 thresh = zeros(size(C));
 cID = zeros(size(Df,1),1);
+%TODO: change these into options!
 sigmamult = 2;
 bins = 100;
 win = 1000;

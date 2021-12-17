@@ -1,8 +1,10 @@
 function caim = csem(Y,K,p,refine,options)
-% This function seems to be getting single cells using CaImAn. Necessary to
-% perform this function before passing the result to BeltToSCN? There,
-% matching might be done using this caim properties, that are not present
-% before (after Ripple Noise removal and motion correction).
+% This function seems to be getting single cells using CaImAn. Apparently 
+% does almost the same as the processing part of the caiman demo script.  
+% Necessary to perform this function before passing the result to 
+% BeltToSCN? There, matching might be done using this caim properties that
+% are not present before (after Ripple Noise removal and motion 
+% correction).
 %   input:
 %       Y: series of image frames (_PROBABLY_ uint16 entries) d1 x d2 x T
 %       K: suggested number of neurons to extract (presumably not forced?)
@@ -136,7 +138,7 @@ K_m = size(C_or,1);
 %savejson('jmesh',json_file,'filename');        % optional save json file with component coordinates (requires matlab json library)
 
 %% display components
-[Y_r,Df] = plot_components_GUI_modifiedByNico(Y_flattened,A_or,C_or,b2,f2,Cn,options);
+[Y_r,Df] = plot_components_GUI_modifiedByNico(Y_flattened,A_or,C_or,b2,f2,Cn,options); %seems to return the results of extract_DF_F and an Y_r which is a mysterious quantity.
 
 
 %% save
@@ -150,7 +152,7 @@ caim.f = f2;
 caim.Cn = Cn;
 caim.Df = Df;
 caim.options = options;
-[caim.cID,caim.thresh] = sort_components(caim);
+[caim.cID,caim.thresh] = sort_components(caim); %Warning: CNMF does not have these properties!
 caim  = divcells(caim,caim.cID);
 [caim.S_norm,caim.S_bin] = canorm(caim);
 
