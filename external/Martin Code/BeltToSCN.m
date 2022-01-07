@@ -283,10 +283,10 @@ end
 %     end
 % %
 
-if isfield(caim,'f') && length(caim.f)<length(belt.tsscn) %length(caim.f) is the number of frames, actually.
+if isprop(caim,'f') && length(caim.f)<length(belt.tsscn) %length(caim.f) is the number of frames, actually.
 %         int = length(belt.tsscn)-length(caim.f)+1:length(belt.tsscn);
     int = 1:length(caim.f);                    
-elseif isfield(caim,'bulk') && isfield(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt.tsscn) %bulk is not a CNMF field!
+elseif isprop(caim,'bulk') && isfield(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt.tsscn) %bulk is not a CNMF field!
 %         int = length(belt.tsscn)-size(caim.bulk.traceMEC,2)+1:length(belt.tsscn);
     int = 1:size(caim.bulk.traceMEC,2);      
 else

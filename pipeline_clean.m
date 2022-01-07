@@ -77,7 +77,7 @@ bright_spikes = [];
 
 
 %% Read nd2 file
-%[nd2_data, options_other] = nd2ReadWithOptions(options_other);
+[nd2_data, options_other] = nd2ReadWithOptions(options_other);
 
 %define options for normcorre
 options_moco = NoRMCorreSetParms('d1',size(nd2_data,1),'d2',size(nd2_data,2),...
@@ -86,8 +86,8 @@ options_moco = NoRMCorreSetParms('d1',size(nd2_data,1),'d2',size(nd2_data,2),...
 
 %% Perform ripple noise reduction and movement correction
 
-%nd2_data = rippleRemovalWithOptions(nd2_data, bright_spikes, options_other);
-%[nd2_data,shifts_g,template,options_moco,col_shift] = normcorre_batch(nd2_data,options_moco);
+nd2_data = rippleRemovalWithOptions(nd2_data, bright_spikes, options_other);
+[nd2_data,shifts_g,template,options_moco,col_shift] = normcorre_batch(nd2_data,options_moco);
 
 %Save to tiff after motion correction and ripple noise removal (optional)
 writeToTiff(nd2_data, DATA_PATH, OUTPUT_FILE_NAME);
@@ -159,11 +159,6 @@ save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco'); % save the option
 [cID, thresh] = sort_components(CNM); %seems not to change CMN object
 CNM = divcellsCNMF(CNM, cID, thresh);
 [S_norm, S_bin] = canormCNMF(CNM, thresh);
-
-%TODO: Check preprocessBeltCaimInplace: returns CNMF object?
-%TODO: check BeltToSCN: returns CNMF objects?
-%FIXME: belt has a modified tsscn (577 points, matched to nikon frames), 
-%but everything else is kept untouched(?)...
 
 %[belt, CNM, nikon_time_stamps, labview_time_stamps] = openImagingSession(DATA_PATH,OUTPUT_FILE_NAME, CNM);
 %CNM already open, need nikon time stamps, labview belt and time stamps

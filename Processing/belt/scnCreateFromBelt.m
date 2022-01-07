@@ -51,7 +51,7 @@ else %leave belt data uncut
 end
 %This elseif condition requires 'bulk' property which is custom and should
 %not be supported.
-%elseif isfield(caim,'bulk') && isfield(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt_struct.tsscn) %bulk is not a CNMF field!
+%elseif isprop(caim,'bulk') && isprop(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt_struct.tsscn) %bulk is not a CNMF field!
 % %         int = length(belt_struct.tsscn)-size(caim.bulk.traceMEC,2)+1:length(belt_struct.tsscn);
 %    int = 1:size(caim.bulk.traceMEC,2);      
 

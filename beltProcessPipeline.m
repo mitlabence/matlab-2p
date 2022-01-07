@@ -1,15 +1,24 @@
-function [belt_struct, belt_scn] = beltProcessPipeline(path_name)
+function [belt_struct, belt_scn] = beltProcessPipeline(path_name, belt_file_name, nikon_file_name)
 %BELTPROCESSPIPELINE Summary of this function goes here
-%   Detailed explanation goes here
+% Input:
+%   path_name: path to experiment folder, ends with "\".
+%   belt_file_name: output txt file of labview (xy.txt; the time stamps 
+%       file is xytime.txt), without '.txt' at the end
+%   nikon_file_name: time stamps from NIS Elements experiment data (txt
+%       file) without '.txt' at the end
+% Output:
+%   belt_struct: the belt data as a structure (named fields)
+%   belt_scn: the belt data in scanner (Nikon) time frame.
 importPackages();
 
 if nargin == 0
-    path_name = uigetdir("Select experiment folder");
+    [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps();
+    belt_file_name = nikon_file_name(1:end-4); %drop '_nik' ('.txt' not included), try this file name
+elseif nargin == 2
+    [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name);
+elseif nargin == 3
+    [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name, nikon_file_name);
 end
-
-[nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name);
-
-belt_file_name = nikon_file_name(1:end-4); %drop '_nik' ('.txt' not included), try this file name
 
 %readcaim.m
 %TODO: use openImagingSession? Or at least parts of it... which do not open
@@ -19,6 +28,8 @@ belt_file_name = nikon_file_name(1:end-4); %drop '_nik' ('.txt' not included), t
 %TODO: here, is belt cut, or only a cut (matched to frame count of Nikon), created?
 % Further analysis assumes 100 Hz... See meterPerSeocnd and possibly
 % correctLength!
+%FIXME: tsscn has 1 more frame at the end! Also present in original
+%pipeline (readcaim.m)
 [belt, tsscn] = beltMatchToNikonStamps(belt, nikon_time_stamps, labview_time_stamps); 
 belt_struct = beltMatrixToStruct(belt); 
 belt_struct = beltAddScannerTimeStamps(belt_struct, tsscn); %tsscn is added to belt_struct
