@@ -1,0 +1,5 @@
+TODO: isfield returns false on objects (CNMF), even if the field exists! Look for this, and change to isprop().
+TODO: compare output of old pipeline and new pipeline!
+TODO: Where does "Missed belt cycles: 2" come from? Check if belt data is corrected! (by plotting the columns, for example: distance, distance per round, round).
+TODO: create functions that move between Python and Matlab (open .mat file in python, export .mat in python). Needed now for ChR2 analysis. beltProcessPipeline() is more or less complete for use in ChR2 python script!
+		(export labview data cut to Nikon frames quickly, without opening the .nd2 file)
