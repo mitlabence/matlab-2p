@@ -98,7 +98,7 @@ end
     % normalize last round only for the summed distance
     belt.distance(rnd(end)+1:end) = belt.distance(rnd(end)+1:end)-belt.distance(rnd(end)+1)+belt.distance(rnd(end));
     belt.distancePR(rnd(end)+1:end) = belt.distancePR(rnd(end)+1:end)-belt.distancePR(rnd(end)+1);
-end
+ end
 
 %% define periods of running
 
@@ -281,12 +281,12 @@ end
 %     for i = 2:length(distancescn)
 %         speedscn(i) = (distancescn(i)-distancescn(i-1))/(belt.tsscn(i)-belt.tsscn(i-1));        
 %     end
-%%
+% %
 
-if isfield(caim,'f') && length(caim.f)<length(belt.tsscn)
+if isfield(caim,'f') && length(caim.f)<length(belt.tsscn) %length(caim.f) is the number of frames, actually.
 %         int = length(belt.tsscn)-length(caim.f)+1:length(belt.tsscn);
     int = 1:length(caim.f);                    
-elseif isfield(caim,'bulk') && isfield(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt.tsscn)
+elseif isfield(caim,'bulk') && isfield(caim.bulk,'traceMEC') && size(caim.bulk.traceMEC,2)<length(belt.tsscn) %bulk is not a CNMF field!
 %         int = length(belt.tsscn)-size(caim.bulk.traceMEC,2)+1:length(belt.tsscn);
     int = 1:size(caim.bulk.traceMEC,2);      
 else

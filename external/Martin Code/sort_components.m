@@ -1,5 +1,5 @@
 function [cID,thresh] = sort_components(caim)
-disp('Function sort_components called (external). This function is deprectated and should be updated (documentation of effects, refactoring) or removed!');
+disp('Function sort_components called (external). This function is undocumented and should be updated (documentation of effects, refactoring) or removed!');
 %TODO: what does this function do?
 %%
 if isfield(caim,'raw') %TODO: which function creates field "raw"?

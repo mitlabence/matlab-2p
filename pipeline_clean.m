@@ -1,17 +1,13 @@
 %% Include necessary packages
 
-CAIMAN_PATH = 'D:\Software\CaImAn\CaImAn-MATLAB\';
-CELLSORT_PATH = 'D:\Software\CellSort\CellSort\';
-NORMCORRE_PATH = 'D:\Software\NoRMCorre\NoRMCorre\';
-OTHER_EXTERNAL_PATH = 'D:\PhD\Matlab Ultron\codes_matlab\external\other\';
-MARTIN_FUNCTIONS_PATH = 'D:\PhD\Matlab Ultron\codes_matlab\external\Martin Code\'; 
-FILEHANDLING_PATH = 'D:\PhD\Matlab Ultron\codes_matlab\FileHandling\';
-PROCESSING_PATH = 'D:\PhD\Matlab Ultron\codes_matlab\Processing\';
+%IMPORTANT: set the paths of the packages inside this function!
+importPackages();
+
+%% Set files and parameters
 
 %IMPORTANT: See CNMFSetParams.m and @CNMF\CNMF.m for fields of CNMFParams
 %and CNMF object; see NoRMCorreSetParms and
 %@MotionCorrection\MotionCorrection.m for NormCorre fields!
-
 
 %Long-term to-do list:
 %TODO: memory map might be useful sometimes: https://de.mathworks.com/help/matlab/import_export/overview-of-memory-mapping.html
@@ -23,23 +19,18 @@ PROCESSING_PATH = 'D:\PhD\Matlab Ultron\codes_matlab\Processing\';
 %Matlab seamlessly. Staying within CNMF framework is important also for
 %this reason!
 
-addpath(genpath(CAIMAN_PATH)); %CaImAn replacing ca_source_extraction
-addpath(genpath(CELLSORT_PATH));
-addpath(genpath(NORMCORRE_PATH));
-addpath(genpath(OTHER_EXTERNAL_PATH));
-addpath(genpath(MARTIN_FUNCTIONS_PATH));
-addpath(genpath(FILEHANDLING_PATH));
-addpath(genpath(PROCESSING_PATH));
-
-%% Set files and parameters
 DATA_PATH = 'D:\PhD\Data\T386_MatlabTest\'; %folder in which the data is located; should end with \
 ND2_FNAME = 'T386_20211202_green.nd2';
 
-FILE_ND2 = [DATA_PATH 'T386_20211202_green.nd2']; %Complete path of nd2
-FILE_NIKDATA = [DATA_PATH 'T386.021221.1105nik.txt']; %Complete path of experiment data exported from .nd2 file
-FILE_ABF = [DATA_PATH '21d02000.abf']; %Abf file (LFP) complete path
-FILE_LABVIEW = [DATA_PATH 'T386.021221.1105.txt']; %LabView-generated txt file with columns for velocity, distance etc.
-FILE_TIME = [DATA_PATH 'T386.021221.1105time.txt']; %LabView-generated txt file with time stamps for matching with Nikon
+FNAME_NIKDATA = 'T386.021221.1105nik.txt';
+FNAME_LABVIEW = 'T386.021221.1105.txt';
+FNAME_TIME = 'T386.021221.1105time.txt';
+
+FPATH_ND2 = [DATA_PATH 'T386_20211202_green.nd2']; %Complete path of nd2
+FPATH_NIKDATA = [DATA_PATH FNAME_NIKDATA]; %Complete path of experiment data exported from .nd2 file
+FPATH_ABF = [DATA_PATH '21d02000.abf']; %Abf file (LFP) complete path
+FPATH_LABVIEW = [DATA_PATH FNAME_LABVIEW]; %LabView-generated txt file with columns for velocity, distance etc.
+FPATH_TIME = [DATA_PATH FNAME_TIME]; %LabView-generated txt file with time stamps for matching with Nikon
 
 % File name (without extension); if "xy", then "xyCa.mat" is output of Ca
 % data after ripple noise removal, motion correction and single-cell
@@ -83,21 +74,23 @@ options_other.num2read = [];
 %options.crop = crop_caiman;
 bright_spikes = [];
 
+
+
+%% Read nd2 file
+%[nd2_data, options_other] = nd2ReadWithOptions(options_other);
+
 %define options for normcorre
 options_moco = NoRMCorreSetParms('d1',size(nd2_data,1),'d2',size(nd2_data,2),...
     'grid_size',[32,32],'mot_uf',4,'bin_width',200,...
     'max_shift',15,'max_dev',3,'us_fac',50,'init_batch',200);
 
-%% Read nd2 file
-[nd2_data, options_other] = nd2ReadWithOptions(options_other);
-
 %% Perform ripple noise reduction and movement correction
 
-nd2_data = rippleRemovalWithOptions(nd2_data, bright_spikes, options_other);
-[nd2_data,shifts_g,template,options_moco,col_shift] = normcorre_batch(nd2_data,options_moco);
+%nd2_data = rippleRemovalWithOptions(nd2_data, bright_spikes, options_other);
+%[nd2_data,shifts_g,template,options_moco,col_shift] = normcorre_batch(nd2_data,options_moco);
 
 %Save to tiff after motion correction and ripple noise removal (optional)
-%writeToTiff(nd2_data, DATA_PATH, OUTPUT_NAME);
+writeToTiff(nd2_data, DATA_PATH, OUTPUT_FILE_NAME);
 
 
 %% Create CaImAn object (instance of CMNF class)
@@ -106,7 +99,7 @@ nd2_data = rippleRemovalWithOptions(nd2_data, bright_spikes, options_other);
 %This allows cleaner pipeline
 CNM = CNMF;
 CNM.optionsSet(options_caiman);
-CNM.filename = options_other.filename; %just for documentation
+CNM.file = options_other.filename; %just for documentation
 CNM.fr = 15;    %15 Hz framerate. TODO: precise framerate is stored in nd2? Use nd2finfo? in preprocessBeltCaimInplace, frequency is printed.
 %after motion correction, drop a band on the edge of the video, i.e. crop
 CNM.loadArray(cropArray(nd2_data, options_other.crop_caiman));
@@ -115,7 +108,7 @@ CNM.loadArray(cropArray(nd2_data, options_other.crop_caiman));
 
 CNM.preprocess;             % preprocessing (compute some quantities)
 CNM.initComponents(K);      % initialization
-CNM.plotCenters()           % plot center of ROIs detected during initialization
+%CNM.plotCenters()           % plot center of ROIs detected during initialization
 
 %TODO: optionally manually refine here!
 
@@ -129,19 +122,24 @@ CNM.updateTemporal(0);      % update temporal components (do not deconvolve at t
 %CNM.keepComponents();       % keep the components that are above certain thresholds
 
 CNM.merge();
-CNM.displayMerging();
+%CNM.displayMerging();
 
 %repeat processing
 CNM.updateSpatial();
 CNM.updateTemporal(); % This time use p in options of CNMF object
-CNM.extractDFF();           % DETREND(!) and extract DF/F values.
-%TODO: do we need deconvolve() at some point?
-%TODO: detrend vs extract?
+
+
+%FIXME: in CNMF.extractDFF(), F0 is set as second property, not Df.
+%extract_df_f() is commented out, and detrend_df_f() is used. In
+%plot_components_GUI_modifiedByNico, Df is found by running extract_df_f().
+%So do the same here.
+CNM.extractDFF(); %get C_df and F0
+[~, CNM.Df] = extract_DF_F(CNM.Y, CNM.A, CNM.C, CNM.P, CNM.options); %get (unused C_df and) Df.
 
 %do some plotting
 figure;
-CNM.plotContours();
-CNM.plotComponentsGUI();     % display all components
+%CNM.plotContours();
+%CNM.plotComponentsGUI();     % display all components
 %TODO: in csem.m, which does roughly the same steps as this section, there
 %is a mysterious Y_r that replaces Y. It originates in plot_components_GUI.
 %what is it?
@@ -159,9 +157,8 @@ save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco'); % save the option
 %TODO: end of csem.m: sort_components, divcells and canorm perform 
 %non-trivial things, but are not documented. Decrypt them!
 [cID, thresh] = sort_components(CNM); %seems not to change CMN object
-%caim = divcells(CNM, cID); %FIXME: this would change CMN! Return a raw
-%data instead of adding "raw" field to CMNF object.
-%[S_norm, S_bin] = canorm(CNM);
+CNM = divcellsCNMF(CNM, cID, thresh);
+[S_norm, S_bin] = canormCNMF(CNM, thresh);
 
 %TODO: Check preprocessBeltCaimInplace: returns CNMF object?
 %TODO: check BeltToSCN: returns CNMF objects?
@@ -169,9 +166,14 @@ save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco'); % save the option
 %but everything else is kept untouched(?)...
 
 %[belt, CNM, nikon_time_stamps, labview_time_stamps] = openImagingSession(DATA_PATH,OUTPUT_FILE_NAME, CNM);
+%CNM already open, need nikon time stamps, labview belt and time stamps
+[nikon_time_stamps, ~, ~]  = openNikonTimeStamps(DATA_PATH, FNAME_NIKDATA(1:end-4)); %remove '.txt' from end
+[belt, labview_time_stamps, ~, ~, ~] = openLabViewData(DATA_PATH, FNAME_LABVIEW(1:end-4)); %remove '.txt' from end
 
-%[belt, caim] = processBeltCaimInplace(belt, CNM, nikon_time_stamps, labview_time_stamps); 
+[belt, CNM] = correctBeltCaim(belt, CNM, nikon_time_stamps, labview_time_stamps); 
 
-%[belt,scn] = BeltToSCN(caim,belt); %scn is the belt in scn time frame
-%scn_reduced = rmfield(scn, 'pupilsize'); %all other fields should have matching dimensions, hence writable to a single csv
+[belt,scn] = BeltToSCN(CNM,belt); %scn is the belt in scn time frame
+scn_reduced = rmfield(scn, 'pupilsize'); %all other fields should have matching dimensions, hence writable to a single csv
+%save('workspace_original.mat'); %to compare results of updated functions,
+%first save original pipeline results
 %writetable(struct2table(scn_reduced), 'D:\PhD\Data\T386_MatlabTest\scn_reduced.csv');

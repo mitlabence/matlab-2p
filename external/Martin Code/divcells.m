@@ -1,5 +1,5 @@
 function caim = divcells(caim,cID)  
-disp('function divcells (external) called. This code is deprecated and should be updated (documentation of effects, CaImAn conformity) or removed!');
+disp('function divcells (external) called. This code is undocumented and should be updated (documentation of effects, CaImAn conformity) or removed!');
 %%   
 if isfield(caim,'raw')
     disp('divcells: caim object has field "raw", i.e. is not a CMNF object!');

@@ -2,6 +2,8 @@ function tmscn = timestampCorrect(nikon_time_stamps,belt)
 %TIMESTAMPCORRECT taken from Martin Pofahl's readcaim.m file to put
 %   separate functions in separate files for better overview.
 
+%TODO: refactor it so functionality is visible!
+
     if find(belt(:,20),1)
         %%        
         disp('Realtime feedback from microscope did not work. Time is alighned to last pupil detection')

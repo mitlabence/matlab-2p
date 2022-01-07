@@ -1,6 +1,5 @@
-function [belt, caim, nikon_time_stamps, labview_time_stamps] = openImagingSession(path_name,file_name, caim)
-%OPENIMAGINGSESSION First part of Martin Pofahl's readcaim function.
-% Given a folder and a file name, this function tries to imply the names of
+function [belt, caim, nikon_time_stamps, labview_time_stamps] = openImagingSession(path_name,belt_file_name, caim)
+%OPENIMAGINGSESSION % Given a folder and a file name, this function tries to imply the names of
 % 4 files, and open them. If they are not found, the user is asked to
 % select them within a GUI. The 4 files are:
 %   1. belt time stamp file: also produced by LabView; by default, with an
@@ -22,10 +21,12 @@ function [belt, caim, nikon_time_stamps, labview_time_stamps] = openImagingSessi
 %       merge_components. Normally, a suffix of "Ca" is added to the belt
 %       data file name.
 %       Example: T386.021221.1105Ca.mat
+% Note: the 4 files can be opened separately with openLabViewData() (1-2),
+% openNikonTimeStamps (3) and openCaImData (4).
 % Input:
 %   path_name: string, path of directory where the data is located. Ends
 %       with "\"!
-%   file_name: file name of belt data file name without ".txt".
+%   belt_file_name: file name of belt data file name without ".txt".
 %   caim: if the CNMF object caim is still open, provide it here to avoid
 %       opening the "...Ca.mat" file containing it.
 % Output:
@@ -34,47 +35,50 @@ function [belt, caim, nikon_time_stamps, labview_time_stamps] = openImagingSessi
 %         input variable)
 %   nikon_time_stamps:
 %   labview_time_stamps:
+%
+% First part of Martin Pofahl's readcaim function.
+
 
 %TODO: provide suffixes to look for!
-%TODO: it is weird to change input file_name inside the script, then back! 
+%TODO: it is weird to change input belt_file_name inside the script, then back! 
 %Change it to inner variables!
 %% Load recorded belt data by LV
 % Get pathmame if not given or if data is not found
 
 if nargin == 0
-    [file_name,path_name] = uigetfile('*.txt','Choose belt time stamp file');   
+    [belt_file_name,path_name] = uigetfile('*.txt','Choose belt time stamp file');   
 end
-if nargin < 1 || ~exist([path_name file_name '.txt'],'file')
-    [file_name,path_name] = uigetfile('*.txt','Choose belt data file',path_name);
-    file_name = file_name(1:end-4);
+if nargin < 1 || ~exist([path_name belt_file_name '.txt'],'file')
+    [belt_file_name,path_name] = uigetfile('*.txt','Choose belt data file',path_name);
+    belt_file_name = belt_file_name(1:end-4);
 end
-disp(['Reading belt file: ' path_name file_name])
+disp(['Reading belt file: ' path_name belt_file_name])
 
-belt = importdata([path_name file_name '.txt']);
+belt = importdata([path_name belt_file_name '.txt']);
 
 %% Load timestamps recorded by LV 
 
-if ~exist([path_name file_name 'time.txt'],'file')
-    [file_name,path_name] = uigetfile('*.txt','Choose belt time stamp file',path_name);
-    disp(['Reading belt time stamps file: ' path_name file_name]);
-    labview_time_stamps = importdata([path_name file_name]);
-    file_name = file_name(1:end-8);
+if ~exist([path_name belt_file_name 'time.txt'],'file')
+    [belt_file_name,path_name] = uigetfile('*.txt','Choose belt time stamp file',path_name);
+    disp(['Reading belt time stamps file: ' path_name belt_file_name]);
+    labview_time_stamps = importdata([path_name belt_file_name]);
+    belt_file_name = belt_file_name(1:end-8);
 else
-    disp(['Reading belt time stamps file: ' path_name file_name 'time.txt']);
-    labview_time_stamps = importdata([path_name file_name 'time.txt']);
+    disp(['Reading belt time stamps file: ' path_name belt_file_name 'time.txt']);
+    labview_time_stamps = importdata([path_name belt_file_name 'time.txt']);
 end
 
 %% Load timestamps recorded by NIS E
 
-if ~exist([path_name file_name 'nik.txt'],'file')
-    [file_name,path_name] = uigetfile('*.txt','Choose nikon time stamp file',path_name);
-    disp(['Reading nikon timestamps file: ' path_name file_name]);
-    file_name = file_name(1:end-7);
+if ~exist([path_name belt_file_name 'nik.txt'],'file')
+    [belt_file_name,path_name] = uigetfile('*.txt','Choose nikon time stamp file',path_name);
+    disp(['Reading nikon timestamps file: ' path_name belt_file_name]);
+    belt_file_name = belt_file_name(1:end-7);
 else
-   disp(['Reading nikon timestamps file: ' path_name file_name]); 
+   disp(['Reading nikon timestamps file: ' path_name belt_file_name]); 
 end
 
-nikon_time_stamps = importdata([path_name file_name 'nik.txt']);
+nikon_time_stamps = importdata([path_name belt_file_name 'nik.txt']);
 nikon_time_stamps = nikon_time_stamps.data;
 
 % Delete Artifact that sometimes occurs...
@@ -98,16 +102,17 @@ disp(['NIS Elements recorded frames: ' num2str(length(nikon_time_stamps))])
 %
 if nargin < 3 || isempty(caim)
     disp('CNMF object was not supplied; trying to create one from .mat file.');
-    caim_fname = [path_name file_name 'Ca.mat'];
+    caim_fname = [path_name belt_file_name 'Ca.mat'];
     disp(['Opening ' caim_fname])
     if ~exist(caim_fname, 'file')
-        [file_name, path_name] = uigetfile('*.txt','Choose Ca.mat file',path_name);
-        file_name = file_name(1:end-6);
+        [belt_file_name, path_name] = uigetfile('*.txt','Choose Ca.mat file',path_name);
+        belt_file_name = belt_file_name(1:end-6);
     end
-    caim = load([path_name file_name 'Ca.mat']);
+    caim = load([path_name belt_file_name 'Ca.mat']);
 else
     disp('CNMF object was found as input parameter.');
 end
+
 %matching Y and scanner time frame needs to be done before caim can be used
 %with belt! This is the code in readcaim (appears in
 %preprocessBeltCaimInplace):
