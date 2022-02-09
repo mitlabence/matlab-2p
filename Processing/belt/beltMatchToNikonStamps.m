@@ -21,17 +21,25 @@ function [belt, tsscn] = beltMatchToNikonStamps(belt, nikon_time_stamps, labview
 %% Compare timestamps to check for consistency
 
 % Check which scanner was running and read out timestamps of scanner recorded by TF
-if find(labview_time_stamps(2:end,3),1)
-    tmscn = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
-    disp('Scanner: galvo')
-    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])
+%if find(labview_time_stamps(2:end,3),1)
+%    tmscn = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
+%    disp('Scanner: galvo')
+%    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])
+%else
+%    tmscn = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
+%    disp('Scanner: resonant')
+%    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])   
+%end
+%if isempty(tmscn)
+%    tmscn = timestampcorrect(nikon_time_stamps,belt);
+%end
+
+tmscn_galvo = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
+tmscn_reso = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
+if any(size(tmscn_galvo) > size(tmscn_reso))
+    tmscn = tmscn_galvo;
 else
-    tmscn = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
-    disp('Scanner: resonant')
-    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])   
-end
-if isempty(tmscn)
-    tmscn = timestampcorrect(nikon_time_stamps,belt);
+    tmscn = tmscn_reso;
 end
 
 % Compare timestamps and data
