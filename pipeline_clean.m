@@ -149,8 +149,8 @@ figure;
 %array.
 %One entry that is weird is Df, which is empty at this point!
 
-save([DATA_PATH OUTPUT_FILE_NAME 'Ca.mat'], 'CNM')
-save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco'); % save the options
+save([DATA_PATH OUTPUT_FILE_NAME 'Ca.mat'], 'CNM', '-v7.3','-nocompression')
+save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco', '-v7.3','-nocompression'); % save the options
 
 %% Custom analysis
 
