@@ -1,5 +1,7 @@
-function belt_struct = beltCorrectLength(belt_struct, actual_length_mm)
-%BELTCORRECTLENGTH This function modifies the belt_struct belt data so all
+function [belt_struct, params] = beltCorrectLengthExpProps(belt_struct, params, actual_length_mm)
+%BELTCORRECTLENGTHEXPPROPS Same as beltCorrectLength, with an extra variable
+% params struct that contains some parameters about the session.
+%This function modifies the belt_struct belt data so all
 %its data match the actual length values (distance between stripes, ...), 
 %provided as actual_length_mm.
 % Input:
@@ -19,12 +21,20 @@ stripe = find(diff(belt_struct.stripes))+1;
 rnd = find(diff(belt_struct.round));
 numstripes = max(belt_struct.stripesPR);
 % length of the belt to be normalized to
-if nargin < 3 || isempty(actual_length_mm) %TODO: check if nargin < 3 is the correct criterion! It should be 2, I think...
+if nargin < 3 || isempty(actual_length_mm) %TODO: check if nargin < 3 is really the correct number! 3 is used in the beltCorrectLength too...
     disp("Belt length data not supported. Assuming 1.5 m 3 zones.");
     beltlgth = 1500;
+    if isprop(params, "belt_length_mm")
+        disp( "beltMatchToNikonStampsExpProps: belt_length_mm is overwritten!");
+    end
     actual_length_mm = beltlgth/numstripes:beltlgth/numstripes:beltlgth;
+    params.belt_length_mm = actual_length_mm;
 else
     disp("Belt length data was supported.");
+    if isprop(params, "belt_length_mm")
+        disp( "beltMatchToNikonStampsExpProps: belt_length_mm is overwritten!");
+    end
+    params.belt_length_mm = actual_length_mm;
 end
  if ~isempty(rnd)
     

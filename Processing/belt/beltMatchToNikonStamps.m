@@ -83,7 +83,7 @@ if length(nikon_time_stamps.data)> length(tmscn)
     disp('NisElements timestamps used')
     tsscn =  nikon_time_stamps.data-nikon_time_stamps.data(1,:);
     tsscn = tsscn(:,2)*1000;
-else
+else %TODO: ERROR for the case more LabView stamps than Nikon stamps
     disp('LabView timestamps used')
     tsscn = tmscn - tmscn(1);
 end

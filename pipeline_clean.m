@@ -163,6 +163,7 @@ CNM = divcellsCNMF(CNM, cID, thresh);
 %[belt, CNM, nikon_time_stamps, labview_time_stamps] = openImagingSession(DATA_PATH,OUTPUT_FILE_NAME, CNM);
 %CNM already open, need nikon time stamps, labview belt and time stamps
 [nikon_time_stamps, ~, ~]  = openNikonTimeStamps(DATA_PATH, FNAME_NIKDATA(1:end-4)); %remove '.txt' from end
+%TODO: nikonStampsCorrectArtifacts() on nikon time stamps file!
 [belt, labview_time_stamps, ~, ~, ~] = openLabViewData(DATA_PATH, FNAME_LABVIEW(1:end-4)); %remove '.txt' from end
 
 [belt, CNM] = correctBeltCaim(belt, CNM, nikon_time_stamps, labview_time_stamps); 
