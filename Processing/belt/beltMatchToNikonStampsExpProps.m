@@ -94,7 +94,7 @@ end
 
 start = 1+ length(tmblt(((tmblt<tmscn(1))>0 )));
 stop = start-1 + length(tmblt(((tmblt>=tmscn(1)) .* (tmblt<=tmscn(end)))>0)) ;
-int = start : stop;
+int = start : stop; %FIXME: not correct! The end point is bad.
 
 if isprop(params, "i_belt_start")
     disp( "beltMatchToNikonStampsExpProps: i_belt_start is overwritten!");
