@@ -20,7 +20,7 @@ rnd = find(diff(belt_struct.round));
 numstripes = max(belt_struct.stripesPR);
 % length of the belt to be normalized to
 if nargin < 3 || isempty(actual_length_mm) %TODO: check if nargin < 3 is the correct criterion! It should be 2, I think...
-    disp("Belt length data not supported. Assuming 1.5 m 3 zones.");
+    disp("Belt length data not provided. Assuming 1.5 m 3 zones.");
     beltlgth = 1500;
     actual_length_mm = beltlgth/numstripes:beltlgth/numstripes:beltlgth;
 else
