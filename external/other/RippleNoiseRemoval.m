@@ -3,6 +3,7 @@ function [filteredData,brightSpikes] = RippleNoiseRemoval(Data,amplitudeThreshol
  
 
 if plt
+    disp("RNR: plotting option was selected.");
     figure('position',[36 56 1692 647])
     grayImage = Data(:,:,1);%-min(grayImage(:));
 
@@ -77,9 +78,10 @@ if plt
 %     imshow(filteredData, [minValue maxValue]);
     title('Filtered Image');
 end
-
 if ~plt && isempty(brightSpikes)
+    disp("RNR: no plotting; brightSpikes empty.");
     filteredData = zeros(size(Data));
+    disp(["RNR: entering parfor loop for ", size(Data, 3), " frames."]);
     parfor frame=1:size(Data,3)
         grayImage = Data(:,:,frame);%-min(grayImage(:));
         frequencyImage = fftshift(fft2(grayImage));
