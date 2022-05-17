@@ -3,4 +3,5 @@
 # exclude .mat and .asv files, as they are not code but workspace data and temporary files.
 *.mat
 *.asv
-importPackages.m
+./importPackages.m
+.idea/
