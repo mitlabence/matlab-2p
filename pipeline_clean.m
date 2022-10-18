@@ -106,7 +106,7 @@ CNM.loadArray(cropArray(nd2_data, options_other.crop_caiman));
 
 %% Processing
 
-CNM.preprocess;             % preprocessing (compute some quantities)
+CNM.preprocess;             % preprocessing (compute some quantities: P_PARMS in CNMF preprocess_data)
 CNM.initComponents(K);      % initialization
 %CNM.plotCenters()           % plot center of ROIs detected during initialization
 

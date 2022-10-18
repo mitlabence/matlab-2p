@@ -1,5 +1,6 @@
 function [belt_struct, belt_scn] = beltProcessPipeline(path_name, belt_file_name, nikon_file_name)
-%BELTPROCESSPIPELINE Summary of this function goes here
+%BELTPROCESSPIPELINE Performs the necessary belt data process steps,
+%combining Martin's readcaim.m and BeltToSCN relevant parts.
 % Input:
 %   path_name: path to experiment folder, ends with "\".
 %   belt_file_name: output txt file of labview (xy.txt; the time stamps 
