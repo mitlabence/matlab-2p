@@ -21,24 +21,39 @@ function [belt, tsscn] = beltMatchToNikonStamps(belt, nikon_time_stamps, labview
 %% Compare timestamps to check for consistency
 
 % Check which scanner was running and read out timestamps of scanner recorded by TF
-if find(labview_time_stamps(2:end,3),1)
-    tmscn = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
-    disp('Scanner: galvo')
-    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])
+%if find(labview_time_stamps(2:end,3),1)
+%    tmscn = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
+%    disp('Scanner: galvo')
+%    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])
+%else
+%    tmscn = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
+%    disp('Scanner: resonant')
+%    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])   
+%end
+%if isempty(tmscn)
+%    tmscn = timestampcorrect(nikon_time_stamps,belt);
+%end
+
+tmscn_galvo = labview_time_stamps(labview_time_stamps(:,3)~=0,3);
+tmscn_reso = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
+disp(['Size of galvo: ' num2str(size(tmscn_galvo)) '; reso: ' num2str(size(tmscn_reso))]);
+if any(size(tmscn_galvo) > size(tmscn_reso))
+    tmscn = tmscn_galvo;
+    disp("Galvo is longer, choosing it");
 else
-    tmscn = labview_time_stamps(labview_time_stamps(:,2)~=0,2);
-    disp('Scanner: resonant')
-    disp(['Recorded timestamps from the microscope: ' num2str(length(tmscn))])   
-end
-if isempty(tmscn)
-    tmscn = timestampcorrect(nikon_time_stamps,belt);
+    disp("Reso is longer, choosing it");
+    tmscn = tmscn_reso;
 end
 
 % Compare timestamps and data
-if length(nikon_time_stamps)>length(tmscn)
-    disp(['Missed frames: ' num2str(length(nikon_time_stamps-nikon_time_stamps(1))-length(tmscn))])
-else
-    disp('No frames missed')
+if length(nikon_time_stamps.data)>length(tmscn)
+    disp(['Missed frames: ' num2str(length(nikon_time_stamps.data)-length(tmscn))]);
+else 
+    if length(nikon_time_stamps.data) < length(tmscn)
+        disp(['Nikon time stamps less than LabView-recorded time stamps! ' num2str(length(nikon_time_stamps.data)) ' (Nikon) vs ' num2str(length(tmscn)) ' (LabView).']);
+    else
+        disp('No frames missed')
+    end
 end
 
 if find(labview_time_stamps(:,1),1)
@@ -64,12 +79,16 @@ stop = start-1 + length(tmblt(((tmblt>=tmscn(1)) .* (tmblt<=tmscn(end)))>0)) ;
 int = start : stop; 
 
 %% make new timestamps for the scanner using nis elements time stamps
-if length(nikon_time_stamps)> length(tmscn)
+if length(nikon_time_stamps.data)> length(tmscn)
     disp('NisElements timestamps used')
-    tsscn =  nikon_time_stamps-nikon_time_stamps(1);
-else
+    tsscn =  nikon_time_stamps.data-nikon_time_stamps.data(1,:);
+    tsscn = tsscn(:,2)*1000;
+else %TODO: ERROR for the case more LabView stamps than Nikon stamps
     disp('LabView timestamps used')
     tsscn = tmscn - tmscn(1);
+end
+if(isnan(tsscn(1,1))) %remove all-NaN column
+    tsscn(:, 1) = [];
 end
 % check if timestamp vector is unique
 if length(tsscn) ~= length(unique(tsscn))
@@ -79,6 +98,7 @@ if length(tsscn) ~= length(unique(tsscn))
      tsscn = tsscnnew';
      disp('Timestamps are made unique')
 end
+%TODO: what do these do? (Documentation)
 tsblt = tmblt(int)-tmblt(start);
 belt = belt(int,:);
 belt(:,9) = tsblt;

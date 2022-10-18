@@ -149,8 +149,8 @@ figure;
 %array.
 %One entry that is weird is Df, which is empty at this point!
 
-save([DATA_PATH OUTPUT_FILE_NAME 'Ca.mat'], 'CNM')
-save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco'); % save the options
+save([DATA_PATH OUTPUT_FILE_NAME 'Ca.mat'], 'CNM', '-v7.3','-nocompression')
+save([DATA_PATH OUTPUT_FILE_NAME 'moco.mat'], 'options_moco', '-v7.3','-nocompression'); % save the options
 
 %% Custom analysis
 
@@ -163,6 +163,7 @@ CNM = divcellsCNMF(CNM, cID, thresh);
 %[belt, CNM, nikon_time_stamps, labview_time_stamps] = openImagingSession(DATA_PATH,OUTPUT_FILE_NAME, CNM);
 %CNM already open, need nikon time stamps, labview belt and time stamps
 [nikon_time_stamps, ~, ~]  = openNikonTimeStamps(DATA_PATH, FNAME_NIKDATA(1:end-4)); %remove '.txt' from end
+%TODO: nikonStampsCorrectArtifacts() on nikon time stamps file!
 [belt, labview_time_stamps, ~, ~, ~] = openLabViewData(DATA_PATH, FNAME_LABVIEW(1:end-4)); %remove '.txt' from end
 
 [belt, CNM] = correctBeltCaim(belt, CNM, nikon_time_stamps, labview_time_stamps); 

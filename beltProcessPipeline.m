@@ -21,6 +21,8 @@ elseif nargin == 3
     [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name, nikon_file_name);
 end
 
+%TODO: nikonStampsCorrectArtifacts() on nikon time stamps file!
+
 %readcaim.m
 %TODO: use openImagingSession? Or at least parts of it... which do not open
 %the big nikon file.
@@ -46,6 +48,7 @@ belt_struct = beltSpeedToMeterPerSecond(belt_struct);
 belt_struct = beltSmoothenPupilSize(belt_struct);
 %TODO: finish smoothen pupil size function, add last step, correlate
 %Ca-signals to space during periods of running as a function!
+disp(length(nikon_time_stamps.data));
 belt_scn = scnCreateFromBelt(belt_struct, length(nikon_time_stamps.data)); %FIXME: belt_scn is weird!
 
 end

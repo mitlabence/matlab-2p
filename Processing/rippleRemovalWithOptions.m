@@ -25,7 +25,7 @@ if ~isfield(options,'rnr_plt') || isempty(options.filename)
     disp('Parameter rnr_plt has not been provided; will not plot! Setting rnr_plt to false.');
     options.rnr_plt = false;
 end
-
+disp("Starting ripple noise removal...");
 [filtered_data, bright_spikes] = RippleNoiseRemoval(nd2_data,options.rnr_ampl_thr,options.rnr_win,options.rnr_plt,bright_spikes);
 %As next step, use motion correction (normcorre_batch.m, for example).
 end

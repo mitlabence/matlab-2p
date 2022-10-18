@@ -3,6 +3,7 @@ function [filteredData,brightSpikes] = RippleNoiseRemoval(Data,amplitudeThreshol
  
 
 if plt
+    disp("RNR: plotting option was selected.");
     figure('position',[36 56 1692 647])
     grayImage = Data(:,:,1);%-min(grayImage(:));
 
@@ -12,7 +13,7 @@ if plt
     if isempty(brightSpikes)
         % Take log magnitude 
         amplitudeImage = log(abs(frequencyImage));
-        h = subplot(2,3,[1 4]);
+        h = subplot(2,4,[1 5]); % 2 rows, 4 columns; 1 and 5 make up the left column
         imagesc(amplitudeImage)
         colormap(h,gray)
 %         minValue = min(min(amplitudeImage));
@@ -20,12 +21,34 @@ if plt
 %         imshow(amplitudeImage, [minValue maxValue]);
 %         axis on;
 
-        brightSpikes = amplitudeImage > amplitudeThreshold; 
-        subplot(2,3,2);imagesc(brightSpikes);%imshow(brightSpikes);
+        brightSpikes = amplitudeImage > amplitudeThreshold;
+
+        %Create rectangle of window to aid manual refinement of selecting
+        %components to filter out
+        rectangle_filter_boundary = zeros(size(amplitudeImage));
+        rectangle_filter_boundary(round(end/2-win):round(end/2+win), round(end/2-win)) = 1;
+        rectangle_filter_boundary(round(end/2-win):round(end/2+win), round(end/2+win)) = 1;
+        rectangle_filter_boundary(round(end/2-win), round(end/2-win):round(end/2+win)) = 1;
+        rectangle_filter_boundary(round(end/2+win), round(end/2-win):round(end/2+win)) = 1;
+        
+        %FIXME: not sure what happens if brightSpikes[i,j] is not 0, and 1
+        %is added! Hopefully the color does not change by much.
+        subplot(2,4,2);imagesc(brightSpikes + rectangle_filter_boundary); %FFT spectrum (log abs value, thresholded) before filtering? Also plot rectangle of filtering
+        %imshow(brightSpikes); 
+        
+        subplot(2,4,3);imagesc(amplitudeImage);
 %         colormap(jet)
         % Remove the central DC spike, exclude everything from row 115 to 143
         brightSpikes(round(end/2-win):round(end/2+win),round(end/2-win):round(end/2+win)) = 0;
-        subplot(2,3,5);imagesc(brightSpikes);
+        subplot(2,4,6);
+        imagesc(brightSpikes + rectangle_filter_boundary); % FFT spectrum (log abs value, thresholded) after filtering? Also plot rectangle of filtering
+        subplot(2,4,7);
+        hold on
+        for i_row = 1:size(amplitudeImage, 1)
+            plot(amplitudeImage(i_row,:));
+        end
+        yline(amplitudeThreshold);
+        hold off
     end
 
     % Mask amplitude spectrum
@@ -42,22 +65,23 @@ if plt
     %visualize input image(grayImage) and output image(amplituImage3)
     %this part can be commented out for when the program is used in a loop
 
-    subplot(2,3,3);
+    subplot(2,4,4);
     imagesc(grayImage);
 %     minValue = min(grayImage(:));
 %     maxValue = max(grayImage(:));
 %     imshow(grayImage, [minValue maxValue]);
     title('Input Image');
-    subplot(2,3,6);
+    subplot(2,4,8);
     imagesc(filteredData);
 %     minValue = min(filteredData(:));
 %     maxValue = max(filteredData(:));
 %     imshow(filteredData, [minValue maxValue]);
     title('Filtered Image');
 end
-
 if ~plt && isempty(brightSpikes)
+    disp("RNR: no plotting; brightSpikes empty.");
     filteredData = zeros(size(Data));
+    disp(["RNR: entering parfor loop for ", size(Data, 3), " frames."]);
     parfor frame=1:size(Data,3)
         grayImage = Data(:,:,frame);%-min(grayImage(:));
         frequencyImage = fftshift(fft2(grayImage));

@@ -15,14 +15,14 @@ function [im_ch1, options] = nd2ReadWithOptions(options)
 %       options: the (possibly modified) input options structure.
 
 if ~isfield(options,'filename') || isempty(options.filename) 
-    error('Error in nd2ReadWithOptions: no filename supported in options!'); 
+    error('Error in nd2ReadWithOptions: no filename given in options!'); 
 end
 if ~isfield(options,'sframe') || isempty(options.sframe)
-    disp('nd2ReadWithOptions: Supplying default parameter sframe: 1');
+    disp('nd2ReadWithOptions: no sframe parameter in options detected. Using default parameter sframe: 1');
     options.sframe = 1; %starting frame is 1 (i.e. from beginning) by default
 end
 if ~isfield(options,'num2read') || isempty(options.num2read)
-    disp('nd2ReadWithOptions: Supplying default parameter num2read: []');
+    disp('nd2ReadWithOptions: no num2read parameter in options detected. Using default parameter num2read: []');
     options.num2read = [];
 end
 
