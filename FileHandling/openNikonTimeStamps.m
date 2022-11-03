@@ -6,16 +6,27 @@ function [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(
 %       with "\"!
 %   nikon_file_name: file name of nikon time stamp file, without ".txt".
 
-if nargin == 1 %no file name provided
+DISPLAY_PREFIX = "MATLAB openNikonTimeStamps: ";
+
+if nargin == 1
+        disp(strcat(DISPLAY_PREFIX, "No Nikon time stamp file name provided."));
         [nikon_file_name, path_name] = uigetfile('*.txt','Choose Nikon time stamp file', path_name);
-        nikon_file_name = nikon_file_name(1:end-4); %cut .txt
+        [~, nikon_file_name, ~] = fileparts(nikon_file_name); %cut into path, filename, .txt
 else
-    if nargin == 0 || ~exist([path_name nikon_file_name '.txt'],'file')
+    if nargin == 0
+        disp(strcat(DISPLAY_PREFIX, "No arguments given."));
         [nikon_file_name, path_name] = uigetfile('*.txt','Choose Nikon time stamp file');
-        nikon_file_name = nikon_file_name(1:end-4); %cut .txt
+        [~, nikon_file_name, ~] = fileparts(nikon_file_name);
+    elseif ~isfile(fullfile(path_name, strcat(nikon_file_name, '.txt')))
+        
+        disp(strcat(DISPLAY_PREFIX, "Specified file does not exist: ", fullfile(path_name, strcat(nikon_file_name, '.txt'))));
+        [nikon_file_name, path_name] = uigetfile('*.txt','Choose Nikon time stamp file');
+        [~, nikon_file_name, ~] = fileparts(nikon_file_name);
     end
+    
 end
-disp(['Reading Nikon time stamp file: ' path_name nikon_file_name '.txt']);
-nikon_time_stamps = importdata([path_name nikon_file_name '.txt']);
+full_path = fullfile(path_name, strcat(nikon_file_name, '.txt'));
+disp(strcat(DISPLAY_PREFIX, "Reading Nikon time stamp file: ", full_path));
+nikon_time_stamps = importdata(full_path);
 
 end

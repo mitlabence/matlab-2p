@@ -2,7 +2,8 @@ function [belt_struct, belt_scn, processing_params] = beltProcessPipelineExpProp
 %BELTPROCESSPIPELINEEXPPROPS Same as beltProcessPipeline, with an
 %additional output parameter containing important parameters.
 % Input:
-%   path_name: path to experiment folder, ends with "\".
+%   path_name: path to experiment folder, optionally ends with separator
+%   ("\" or "/")
 %   belt_file_name: output txt file of labview (xy.txt; the time stamps 
 %       file is xytime.txt), without '.txt' at the end
 %   nikon_file_name: time stamps from NIS Elements experiment data (txt
@@ -13,16 +14,52 @@ function [belt_struct, belt_scn, processing_params] = beltProcessPipelineExpProp
 %   processing_params: struct containing missed frames, missed cycles, and
 %   other important parameters that arose during the processing pipeline.
 %   %TODO: document processing_params
+
+
+%FIXME: if nikon time stamps file is not named xy_nik.txt but xynik.txt
+%(which happens often), this function will not work properly!
 importPackages();
 
 processing_params = struct;
 
+DISPLAY_PREFIX = "MATLAB beltProcessPipelineExpProps: "; % put this in beginning of all disp() to mark which function displays message
+
 if nargin == 0
+    % Ask user to select files
     [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps();
     belt_file_name = nikon_file_name(1:end-4); %drop '_nik' ('.txt' not included), try this file name
-elseif nargin == 2
+elseif nargin == 1
+    % Only path is given, ask user to select files
     [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name);
+    %try to infer belt file name from nikon file name
+    if endsWith(nikon_file_name, "_nik")
+        belt_file_name = nikon_file_name(1:end-4); %drop '_nik' ('.txt' not included), try this file name
+    elseif endsWith(nikon_file_name, "nik")
+        belt_file_name = nikon_file_name(1:end-3); %drop 'nik', try this file name
+    else
+        % belt file name cannot be derived from nikon time stamp minus _nik
+        % or nik at the end
+        
+        % TODO: should handle this error with a prompt to specify belt file instead of error!
+        error(strcat(DISPLAY_PREFIX, "1 argument provided, given nikon stamp file does not end with _nik or nik: ", nikon_file_name))
+    end
+elseif nargin == 2
+    %path and belt file given, need to figure out nikon file name
+    %try to infer nikon file name:
+    if isfile(fullfile(path_name, strcat(belt_file_name, "_nik.txt")))
+        nikon_file_name = strcat(belt_file_name, "_nik");
+        disp(strcat(DISPLAY_PREFIX, "Trying to open inferred nikon stamp file name: ", nikon_file_name, ".txt"));
+        [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name, nikon_file_name);
+    elseif isfile(fullfile(path_name, strcat(belt_file_name, "nik.txt")))
+        nikon_file_name = strcat(belt_file_name, "nik");
+        disp(strcat(DISPLAY_PREFIX, "Trying to open inferred nikon stamp file name: ", nikon_file_name, ".txt"));
+        [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name, nikon_file_name);
+    else
+        disp("path and belt file name provided; failed to infer Nikon time stamp file.");
+        [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name);
+    end
 elseif nargin == 3
+    disp(strcat(DISPLAY_PREFIX, "Nikon file name specified; trying to open: ", nikon_file_name, ".txt"));
     [nikon_time_stamps, path_name, nikon_file_name]  = openNikonTimeStamps(path_name, nikon_file_name);
 end
 
