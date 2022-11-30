@@ -7,11 +7,16 @@ function belt_struct = beltSmoothenPupilSize(belt_struct)
 %
 %TODO: Not tested!
 
+if sum(isnan(belt_struct.pupil)) > 0
+    disp("BELTSMOOTHENPUPILSIZE: in belt_struct, pupil attribute contains NaN. Skipping pupil data smoothening.")
+    return
+end
+
 scn.pupil = nan(length(belt_struct.tsscn),1);
 scn.pupilLP = nan(length(belt_struct.tsscn),1);
 scn.pupilraw = nan(length(belt_struct.tsscn),1);
 scn.blink = nan(length(belt_struct.tsscn),1);
-    
+
 if isfield(belt_struct, 'pupil') && ~isempty(find(belt_struct.pupil,1))   
     thrs = .700;
     pupil = belt_struct.pupil;
