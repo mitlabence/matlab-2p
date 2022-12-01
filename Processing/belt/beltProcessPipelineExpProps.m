@@ -95,8 +95,8 @@ belt_struct = beltSpeedToMeterPerSecond(belt_struct);
 belt_struct = beltSmoothenPupilSize(belt_struct);
 %TODO: finish smoothen pupil size function, add last step, correlate
 %Ca-signals to space during periods of running as a function!
-disp(length(nikon_time_stamps.data));
-belt_scn = scnCreateFromBelt(belt_struct, length(nikon_time_stamps.data)); %FIXME: belt_scn is weird!
+disp(height(nikon_time_stamps));
+belt_scn = scnCreateFromBelt(belt_struct, height(nikon_time_stamps)); %FIXME: belt_scn is weird!
 
 end
 

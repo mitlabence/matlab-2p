@@ -6,6 +6,7 @@ function [belt, tsscn, params] = beltMatchToNikonStampsExpProps(belt, nikon_time
 %   Input:
 %       belt: matrix variable containing all belt read out data and the time
 %             stamps.
+%       nikon_time_stamps: table from openNikonTimeStamps. See 
 %   Output:
 %       belt: the belt matrix after corrections.
 %       tsscn: belt data in the Nikon scanner time frame. Neccesary as 
@@ -51,7 +52,7 @@ if isprop(params, "missed_frames")
     disp( "beltMatchToNikonStampsExpProps: missed_frames is overwritten!");
 end
 
-n_missed_frames = length(nikon_time_stamps.data)-length(tmscn);
+n_missed_frames = height(nikon_time_stamps)-length(tmscn);
 params.missed_frames = n_missed_frames; 
 if n_missed_frames > 0
     disp(['Missed frames: ' num2str(n_missed_frames)]);
@@ -106,9 +107,9 @@ params.i_belt_start = start;
 params.i_belt_stop = stop; % inclusive stop!
 
 %% make new timestamps for the scanner using nis elements time stamps
-if length(nikon_time_stamps.data)> length(tmscn)
+if height(nikon_time_stamps)> length(tmscn)
     disp('NisElements timestamps used')
-    tsscn =  nikon_time_stamps.data-nikon_time_stamps.data(1,:);
+    tsscn =  nikon_time_stamps{:,:}-nikon_time_stamps{1,:};
     tsscn = tsscn(:,2)*1000;
 
     if isprop(params, "used_tstamps")
