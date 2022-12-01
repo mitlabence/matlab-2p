@@ -58,7 +58,7 @@ if n_missed_frames > 0
     disp(['Missed frames: ' num2str(n_missed_frames)]);
 else 
     if n_missed_frames < 0 % more labview stamps, length(tmscn) larger
-        disp(['Nikon time stamps less than LabView-recorded time stamps! ' num2str(length(nikon_time_stamps.data)) ' (Nikon) vs ' num2str(length(tmscn)) ' (LabView).']);
+        disp(['Nikon time stamps less than LabView-recorded time stamps! ' num2str(height(nikon_time_stamps)) ' (Nikon) vs ' num2str(length(tmscn)) ' (LabView).']);
     else
         disp('No frames missed');
     end
