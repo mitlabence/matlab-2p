@@ -63,21 +63,25 @@ if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
     nikon_time_stamps = removevars(nikon_time_stamps, "Var6");
     nikon_time_stamps = removevars(nikon_time_stamps, "Var7");
 
-
+    % if nikon_time_stamps has weird shape (happens sometimes for
+    % stimulations):
     % Need to change Var2 from {'mm:ss.xxxx'} to sss.xxxx, double instead
     % of cell of char array
     % Also need to change Var3, Var4 from  {'xxx,yyy'} to xxx.yyy, double
     % instead of cell of char array
+    
+    % check if numerical values have been recognized:
 
-    % split Var2 (column of cell arrays of 'mm:ss.msms') along ':'
-    min_sec_tuples = split(nikon_time_stamps{:,2}, ':');
-    % add up minutes converted to seconds and seconds.milliseconds
-    var1_col = nikon_time_stamps{:,1};
-    var2_col = 60*cellfun(@str2num, min_sec_tuples(:,1)) + cellfun(@str2num, min_sec_tuples(:,2));
-    var3_col = cellfun(@str2num, strrep(nikon_time_stamps{:,3}, ',', '.'));
-    var4_col = cellfun(@str2num, strrep(nikon_time_stamps{:,4}, ',', '.'));
-    var5_col = nikon_time_stamps{:,5};
-    nikon_time_stamps = table(var1_col, var2_col, var3_col, var4_col, var5_col);
+    if ~isa(nikon_time_stamps{1,2},'double')
+        % split Var2 (column of cell arrays of 'mm:ss.msms') along ':'
+        min_sec_tuples = split(nikon_time_stamps{:,2}, ':');
+        % add up minutes converted to seconds and seconds.milliseconds
+        var1_col = nikon_time_stamps{:,1};
+        var2_col = 60*cellfun(@str2num, min_sec_tuples(:,1)) + cellfun(@str2num, min_sec_tuples(:,2));
+        var3_col = cellfun(@str2num, strrep(nikon_time_stamps{:,3}, ',', '.'));
+        var4_col = cellfun(@str2num, strrep(nikon_time_stamps{:,4}, ',', '.'));
+        var5_col = nikon_time_stamps{:,5};
+        nikon_time_stamps = table(var1_col, var2_col, var3_col, var4_col, var5_col);
     end
 
 
