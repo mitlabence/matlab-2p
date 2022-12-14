@@ -45,7 +45,10 @@ nikon_time_stamps = readtable(full_path);
 % In the table, there is a NaN column as the first, so column 1 in the txt
 % is column 2 in the matlab table, etc.
 
-%check if 6th column (1st should be NaN column) exists
+% check if 6th column (1st should be NaN column) exists
+% (Nikon Time Stamps file should have 4 columns with data, sometimes
+% first column is full of NaN -> Var5 might be the last one, Var1 NaNs, or
+% Var4 is the last one, Var1 the first. Var5+ can be thrown away.
 if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
     disp("MATLAB openNikonTimeStamps.m: Detected stimulation as recording type");
     % find non-empty entries in 6th column (column 5 in txt file)
@@ -61,8 +64,14 @@ if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
 
     % remove last two columns (that should be completely empty now)
     % UPDATE: no need to remove, as we make the nikon_time_stamps new
-    % nikon_time_stamps = removevars(nikon_time_stamps, "Var6");
-    % nikon_time_stamps = removevars(nikon_time_stamps, "Var7");
+    % UPDATE2: apparently, removing these are also not good as they
+    % introduce 
+    try
+        nikon_time_stamps = removevars(nikon_time_stamps, "Var6");
+        nikon_time_stamps = removevars(nikon_time_stamps, "Var7");
+    catch exception % don't really want to do anything if Var6/Var7 does not exist
+        disp("Nikon time stamps seems a bit narrow... Probably OK.")
+    end
 
     % if nikon_time_stamps has weird shape (happens sometimes for
     % stimulations):
@@ -89,7 +98,7 @@ if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
         nikon_time_stamps(:,1) = [];  % delete column of NaNs
     end
     % check if numerical values have been recognized:
-    if ~isa(nikon_time_stamps{1,1},'double')
+    if ~isa(nikon_time_stamps{1,1},'double') % TODO: probably need more sophisticated checks.
         % split Var2 (column of cell arrays of 'mm:ss.msms') along ':'
         min_sec_tuples = split(nikon_time_stamps{:,1}, ':');
         % add up minutes converted to seconds and seconds.milliseconds
