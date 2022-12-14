@@ -60,8 +60,9 @@ if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
     nikon_time_stamps(find(is_stimframe), :) = [];
 
     % remove last two columns (that should be completely empty now)
-    nikon_time_stamps = removevars(nikon_time_stamps, "Var6");
-    nikon_time_stamps = removevars(nikon_time_stamps, "Var7");
+    % UPDATE: no need to remove, as we make the nikon_time_stamps new
+    % nikon_time_stamps = removevars(nikon_time_stamps, "Var6");
+    % nikon_time_stamps = removevars(nikon_time_stamps, "Var7");
 
     % if nikon_time_stamps has weird shape (happens sometimes for
     % stimulations):
@@ -70,18 +71,34 @@ if any(strcmp('Var6', nikon_time_stamps.Properties.VariableNames))
     % Also need to change Var3, Var4 from  {'xxx,yyy'} to xxx.yyy, double
     % instead of cell of char array
     
+    % Get rid of full NaN first column that sometimes appears
+    
+    % 1. get element to test for being NaN
+    % For some reason, NaNs will not be stored as cells, so we have the
+    % weird situation that first column is sometimes a table of NaNs,
+    % sometimes it is a table of cell arrays. For NaNs, accessing the
+    % element 1 works by x{1,1}, for a cell array, it is x{1,1}{1}. So need
+    % to access element based on this difference first.
+    if iscell(nikon_time_stamps{1,1})
+        test_element = nikon_time_stamps{1,1}{1};
+    else
+        test_element = nikon_time_stamps{1,1};
+    end
+    % 2. test if element is NaN
+    if any(isnan(test_element)) % isnan(nikon_time_stamps{1,1})
+        nikon_time_stamps(:,1) = [];  % delete column of NaNs
+    end
     % check if numerical values have been recognized:
-
-    if ~isa(nikon_time_stamps{1,2},'double')
+    if ~isa(nikon_time_stamps{1,1},'double')
         % split Var2 (column of cell arrays of 'mm:ss.msms') along ':'
-        min_sec_tuples = split(nikon_time_stamps{:,2}, ':');
+        min_sec_tuples = split(nikon_time_stamps{:,1}, ':');
         % add up minutes converted to seconds and seconds.milliseconds
-        var1_col = nikon_time_stamps{:,1};
-        var2_col = 60*cellfun(@str2num, min_sec_tuples(:,1)) + cellfun(@str2num, min_sec_tuples(:,2));
-        var3_col = cellfun(@str2num, strrep(nikon_time_stamps{:,3}, ',', '.'));
-        var4_col = cellfun(@str2num, strrep(nikon_time_stamps{:,4}, ',', '.'));
-        var5_col = nikon_time_stamps{:,5};
-        nikon_time_stamps = table(var1_col, var2_col, var3_col, var4_col, var5_col);
+        %4 columns: time, sw_time, nidaq_time, index
+        time_col = 60.0*cellfun(@str2double, min_sec_tuples(:,1)) + cellfun(@str2double, min_sec_tuples(:,2));
+        swtime_col = cellfun(@str2double, strrep(nikon_time_stamps{:,2}, ',', '.'));
+        nidaqtime_col = cellfun(@str2double, strrep(nikon_time_stamps{:,3}, ',', '.'));
+        idx_col = nikon_time_stamps{:,4};
+        nikon_time_stamps = table(time_col, swtime_col, nidaqtime_col, idx_col);
     end
 
 
