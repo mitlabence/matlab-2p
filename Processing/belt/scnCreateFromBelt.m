@@ -33,10 +33,7 @@ roundscn = zeros(length(belt_struct.tsscn),1);
 for i = 1:length(distancescn)
     % Find single time point that is closest to Nikon frame i time point
     j = abs(belt_struct.time-belt_struct.tsscn(i)) == min(abs(belt_struct.time-belt_struct.tsscn(i)));
-    try
-        distancePRscn(i) = belt_struct.distancePR(find(j,1));
-    catch exception
-        a = belt_struct.distancePR(find(j,1));
+    distancePRscn(i) = belt_struct.distancePR(find(j,1));
     distancescn(i) = belt_struct.distance(find(j,1));
     runningscn(i) = belt_struct.running(find(j,1));
     roundscn(i) = belt_struct.round(find(j,1));
