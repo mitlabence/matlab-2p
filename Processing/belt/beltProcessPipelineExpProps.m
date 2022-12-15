@@ -89,7 +89,7 @@ clear tsscn;
 
 %BeltToSCN.m
 [belt_struct, processing_params] = beltCorrectArduinoArtifactsExpProps(belt_struct, processing_params);
-[belt_struct, processing_params] = beltCorrectLengthExpProps(belt_struct, processing_params); %supply vector of zone lengths if not 500 mm per zone, 3 zones
+[belt_struct, processing_params] = beltCorrectLengthExpProps(belt_struct, processing_params); %pass vector of zone lengths if not 500 mm per zone, 3 zones
 [belt_struct, processing_params]  = beltAddRunningPropertiesExpProps(belt_struct, processing_params);
 belt_struct = beltSpeedToMeterPerSecond(belt_struct);
 belt_struct = beltSmoothenPupilSize(belt_struct);

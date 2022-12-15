@@ -136,16 +136,40 @@ params.len_tsscn = length(tsscn);
 
 % check if timestamp vector is unique
 if length(tsscn) ~= length(unique(tsscn))
+    disp("beltMatchToNikonStampsExpProps: time stamps not unique! Possibly corrupted file.")
+    disp("beltMatchToNikonStampsExpProps: Interpolating...")
+    tsscn_shifted = tsscn(2:end);
+    tsscn_shifted(end+1) = tsscn_shifted(end); % add one last element to match length
+    tsscn_dt = tsscn_shifted - tsscn;
+    % find "correct" time differences between frames: they should not be 0
+    % and also not negative.
+    positive_dts = tsscn_dt > 0;
+    % Get the mean of positive entries (time steps in tsscn_dt):
+    % 1. set all the rest to 0 in tsscn_dt
+    tsscn_dt(~positive_dts) = 0;
+    % 2. Get mean difference between "correct" frames
+    mean_dt = sum(tsscn_dt) ./ sum(positive_dts);
+    % 3. Set mean frame difference for "weird" values
+    tsscn_dt(~positive_dts) = mean_dt;
+    % 4. Create tsscn from first frame t and frame differences
+    tsscn_new = zeros(length(tsscn), 1);
+    % get first time
+    tsscn_new(1) = tsscn(1); % should be 0
+    for i_frame_diff = 1:length(tsscn_dt) - 1
+        tsscn_new(i_frame_diff + 1) = tsscn_new(i_frame_diff) + tsscn_dt(i_frame_diff);
+    end
     if isprop(params, "timestamps_were_duplicate")
         disp( "beltMatchToNikonStampsExpProps: timestamps_were_duplicate is overwritten!");
     end
      params.timestamps_were_duplicate = true;
-
-     a = diff(tsscn) > 0;
-     tsscnnew = interp1(find(a),tsscn(a),1:length(tsscn));
-     tsscnnew(end) = tsscn(end);
-     tsscn = tsscnnew'; %transpose!
-     disp('Timestamps are made unique');
+     params.tsscn_old = tsscn;
+     tsscn = tsscn_new;
+     % old interpolation method from Martin failed
+     %a = diff(tsscn) > 0;
+     %tsscnnew = interp1(find(a),tsscn(a),1:length(tsscn));
+     %tsscnnew(end) = tsscn(end);
+     %tsscn = tsscnnew'; %transpose!
+     %disp('Timestamps are made unique');
 end
 
 
