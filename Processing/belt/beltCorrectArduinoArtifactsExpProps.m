@@ -33,8 +33,20 @@ end
 params.ard_thresneg = thresneg;
 params.ard_threspos = threspos;
 params.art_n_artifacts = length(numart);
+% Remove outliers: Martin's algorithm just takes the value before for speed
 
-for i = 1:length(numart)
+% for i=1, the numart(1) could be 1, numart(i)-1 = 0 would be invalid index
+if numart(1) == 1
+    if belt_struct.speed(numart(1)) > 0 % positive artifact
+        belt_struct.speed(numart(1)) = threspos;
+    else
+        belt_struct.speed(numart(1)) = thresneg;
+    end
+else % numart(1) is not 1, can use previous value
+    belt_struct.speed(numart(1)) = belt_struct.speed(numart(1)-1);
+end
+
+for i = 2:length(numart)
     belt_struct.speed(numart(i)) = belt_struct.speed(numart(i)-1);
     belt_struct.distance(numart(i):end) = belt_struct.distance(numart(i):end)+belt_struct.distance(numart(i)-1)-belt_struct.distance(numart(i));
     currnd = belt_struct.round(numart(i));

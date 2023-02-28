@@ -87,7 +87,7 @@ belt_struct = beltAddScannerTimeStamps(belt_struct, tsscn); %tsscn is added to b
 clear belt; %only work with belt_struct from this point!
 clear tsscn;
 
-%BeltToSCN.m
+%BeltToSCN.m    
 [belt_struct, processing_params] = beltCorrectArduinoArtifactsExpProps(belt_struct, processing_params);
 [belt_struct, processing_params] = beltCorrectLengthExpProps(belt_struct, processing_params); %pass vector of zone lengths if not 500 mm per zone, 3 zones
 [belt_struct, processing_params]  = beltAddRunningPropertiesExpProps(belt_struct, processing_params);
