@@ -79,7 +79,12 @@ if find(labview_time_stamps(:,1),1)
         disp(['Missed belt cycles: ' num2str(n_missed_cycles)])
         if abs(n_missed_cycles)>10  % TODO: why 10 as threshold?
             disp('Timestamps filled with the belt stamps')
-            tmblt = [tmblt(1); belt(:,9)+tmblt(2)-belt(1,9)];
+            if length(tmblt) == 1
+                disp("Only one belt time stamp detected...");
+                tmblt = [tmblt(1); tmblt(1) + belt(:,9)-belt(1,9)]; 
+            else
+                tmblt = [tmblt(1); belt(:,9)+tmblt(2)-belt(1,9)];  % Column 9 is dt (time step between rows)
+            end
         end
     end
 else
