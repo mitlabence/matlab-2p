@@ -61,7 +61,9 @@ end
 
     % normalize all other rounds
     for i = 1:length(rnd)-1
-        for j = 1:numstripes        
+        for j = 1:numstripes
+            % i: number of round
+            % j: number of stripe in round
             win = stripe(i*numstripes+j-1-belt_struct.stripesPR(1))+1:stripe(i*numstripes+j-belt_struct.stripesPR(1));      % define the window in one round between two stripes          
             % Correction for distance per round
             if j == 1

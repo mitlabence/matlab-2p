@@ -87,7 +87,7 @@ if find(labview_time_stamps(:,1),1)
             end
         end
     end
-else
+else  % no non-zero element found
     if isprop(params, "missed_cycles")
         disp( "beltMatchToNikonStampsExpProps: missed_cycles is overwritten!");
     end
@@ -97,7 +97,7 @@ else
 end
 
 %% Get belt-index interval of scanner activity
-
+% If understood correctly, here we match start and stop of labview to nikon
 start = 1+ length(tmblt(((tmblt<tmscn(1))>0 )));
 stop = start-1 + length(tmblt(((tmblt>=tmscn(1)) .* (tmblt<=tmscn(end)))>0)) ;
 int = start : stop; %FIXME: not correct! The end point is bad.
