@@ -38,16 +38,18 @@ params.art_n_artifacts = length(numart);
 i_begin = 2; % treat i=1 case individually first, as numart(1) can be 1.
 
 % for i=1, the numart(1) could be 1, numart(i)-1 = 0 would be invalid index
-if numart(1) == 1
-    if belt_struct.speed(numart(1)) > 0 % positive artifact
-        belt_struct.speed(numart(1)) = threspos;
-    else
-        belt_struct.speed(numart(1)) = thresneg;
+if ~isempty(numart)  % TODO: not sure if adding this makes trouble if numart is empty (happens sometimes)
+    if numart(1) == 1
+        if belt_struct.speed(numart(1)) > 0 % positive artifact
+            belt_struct.speed(numart(1)) = threspos;
+        else
+            belt_struct.speed(numart(1)) = thresneg;
+        end
+        % distance does not need to be changed (as there is no reasonable way
+        % to do so), neither round and distance per round.
+    else % numart(1) is not 1, can use same algorithm for i=1 as for the rest, see below
+        i_begin = 1;
     end
-    % distance does not need to be changed (as there is no reasonable way
-    % to do so), neither round and distance per round.
-else % numart(1) is not 1, can use same algorithm for i=1 as for the rest, see below
-    i_begin = 1;
 end
 
 for i = i_begin:length(numart)
