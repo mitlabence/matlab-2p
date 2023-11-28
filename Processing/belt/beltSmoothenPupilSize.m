@@ -84,7 +84,11 @@ if isfield(belt_struct, 'pupil') && ~isempty(find(belt_struct.pupil,1))
             pupilLP(int) = filtfilt(bb,aa,pupil(int));
         end
     else
-        pupil = filtfilt(b,a,pupil);
+        if sum(isnan(pupil)) == 0
+            pupil = filtfilt(b,a,pupil);
+        else
+            disp("NaN in pupil data detected; skipping smoothing.")
+        end
     end
     belt_struct.pupilraw = belt_struct.pupil;
     belt_struct.pupilLP = pupilLP;
