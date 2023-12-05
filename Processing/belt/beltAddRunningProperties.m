@@ -19,7 +19,7 @@ thres = 40;
 % Width of interrunning period to be considered still running (in bins @ 100 Hz)
 wind = 250;
 running = zeros(length(belt_struct.speed),1);
-running(smooth(belt_struct.speed)>thres) = 1;
+running(smooth(abs(belt_struct.speed))>thres) = 1;
 stepup = find(diff(running)==1);
 stepdown = find(diff(running)==-1); 
 for i = 1 : length(stepdown)-1
