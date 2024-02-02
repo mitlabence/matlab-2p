@@ -16,7 +16,10 @@ for i = 1:size(samedate,1)
         load(prefiles(i).name,'belt','caim','scn');       
     else
         %% Readout ca-Imaging & behaviour data and real time correction    
-        [belt,caim] = ConnecCaim([files(samedate{i,1}).folder '/'],files,samedate{i,1});   
+        [belt,caim] = ConnecCaim([files(samedate{i,1}).folder '/'],files,samedate{i,1}); 
+        if isfield(caim, "caim")  % fix(?) bug where caim becomes a struct containing caim itself only
+            caim = caim.caim;
+        end
         [belt,scn] = BeltToSCN(caim,belt);   
     end
     
